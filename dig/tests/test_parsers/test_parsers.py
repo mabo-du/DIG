@@ -468,31 +468,124 @@ class TestDT1Parser:
 
 
 class TestMagnetometryParser:
-    def test_magnetometry_raises_on_missing_file(self):
+    def test_magnetometry_raises_on_missing_dat(self):
         import pytest
         with pytest.raises(FileNotFoundError):
             MagnetometryFile("/nonexistent/file.dat")
 
-    def test_magnetometry_parse(self):
+    def test_magnetometry_raises_on_missing_grd(self):
+        import pytest
         with tempfile.TemporaryDirectory() as tmp:
-            # Create .grd file
+            dat_path = Path(tmp) / "test.dat"
+            dat_path.write_bytes(b"\x00\x00")
+            with pytest.raises(FileNotFoundError):
+                MagnetometryFile(str(dat_path))
+
+    def test_magnetometry_basic_parse(self):
+        with tempfile.TemporaryDirectory() as tmp:
             grd_content = "ROWS 4\nCOLS 3\nCELL_SIZE 0.5\nZIGZAG true\n"
             grd_path = Path(tmp) / "test.grd"
             grd_path.write_text(grd_content)
 
-            # Create .dat file (4×3 = 12 int16 values)
             values = np.arange(12, dtype=np.int16)
             dat_path = Path(tmp) / "test.dat"
             dat_path.write_bytes(values.tobytes())
 
             mag = MagnetometryFile(str(dat_path), str(grd_path))
             assert mag.shape == (4, 3)
+            assert mag.rows == 4
+            assert mag.cols == 3
             assert mag.cell_size == 0.5
 
             # Check zig-zag reversal
             data = mag.data
-            assert data[0, 0] == 0  # row 0 unchanged
-            assert data[1, 0] == 5  # row 1 reversed (4,5,3 → 5,4,3)
+            assert data[0, 0] == 0   # row 0 unchanged
+            assert data[1, 0] == 5   # row 1 reversed (4,5,3 → 5,4,3)
+            assert data[2, 0] == 6   # row 2 unchanged
+            assert data[3, 0] == 11  # row 3 reversed (10,11,9 → 11,10,9)
+
+    def test_magnetometry_no_zigzag(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            grd_content = "ROWS 3\nCOLS 4\nZIGZAG false\n"
+            grd_path = Path(tmp) / "test.grd"
+            grd_path.write_text(grd_content)
+
+            values = np.arange(12, dtype=np.int16)
+            dat_path = Path(tmp) / "test.dat"
+            dat_path.write_bytes(values.tobytes())
+
+            mag = MagnetometryFile(str(dat_path), str(grd_path))
+            data = mag.data
+            assert data[0, 0] == 0   # unchanged
+            assert data[1, 0] == 4   # unchanged (no zigzag)
+            assert data[2, 0] == 8   # unchanged
+
+    def test_magnetometry_repr(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            grd_path = Path(tmp) / "test.grd"
+            grd_path.write_text("ROWS 10\nCOLS 20\n")
+            dat_path = Path(tmp) / "test.dat"
+            dat_path.write_bytes(b"\x00\x00" * 200)
+
+            mag = MagnetometryFile(str(dat_path), str(grd_path))
+            assert "MagnetometryFile" in repr(mag)
+            assert "(10, 20)" in repr(mag)
+
+    def test_magnetometry_void_values(self):
+        """Void values (-32768) should be preserved, not treated as data."""
+        with tempfile.TemporaryDirectory() as tmp:
+            grd_path = Path(tmp) / "test.grd"
+            grd_path.write_text("ROWS 2\nCOLS 3\n")
+
+            data = np.array([[0, -32768, 2], [3, 4, 5]], dtype=np.int16)
+            dat_path = Path(tmp) / "test.dat"
+            dat_path.write_bytes(data.tobytes())
+
+            mag = MagnetometryFile(str(dat_path), str(grd_path))
+            assert mag.data[0, 1] == -32768
+            assert mag.void_mask[0, 1] == True
+            assert mag.void_mask[0, 0] == False
+
+    def test_magnetometry_grid_metadata(self):
+        """Verify .grd metadata dict is accessible."""
+        with tempfile.TemporaryDirectory() as tmp:
+            grd_content = (
+                "ROWS 64\nCOLS 32\nCELL_SIZE 1.0\n"
+                "ORIGIN_EASTING 500000.0\nORIGIN_NORTHING 123450.0\n"
+                "ROTATION 15.0\n"
+            )
+            grd_path = Path(tmp) / "test.grd"
+            grd_path.write_text(grd_content)
+            dat_path = Path(tmp) / "test.dat"
+            dat_path.write_bytes(b"\x00\x00" * (64 * 32))
+
+            mag = MagnetometryFile(str(dat_path), str(grd_path))
+            assert abs(mag.origin_easting - 500000.0) < 0.01
+            assert abs(mag.origin_northing - 123450.0) < 0.01
+            assert abs(mag.rotation_deg - 15.0) < 0.01
+            assert mag.grid_metadata.get("ROWS") == "64"
+
+    def test_magnetometry_auto_discover_grd(self):
+        """Test automatic .grd sidecar discovery."""
+        with tempfile.TemporaryDirectory() as tmp:
+            grd_path = Path(tmp) / "survey.grd"
+            grd_path.write_text("ROWS 5\nCOLS 5\n")
+            dat_path = Path(tmp) / "survey.dat"
+            dat_path.write_bytes(b"\x00\x00" * 25)
+
+            mag = MagnetometryFile(str(dat_path))
+            assert mag.shape == (5, 5)
+
+    def test_magnetometry_uppercase_grd(self):
+        """Test auto-discovery with uppercase .GRD extension."""
+        with tempfile.TemporaryDirectory() as tmp:
+            grd_path = Path(tmp) / "survey.GRD"
+            grd_path.write_text("ROWS 3\nCOLS 3\n")
+            dat_path = Path(tmp) / "survey.dat"
+            dat_path.write_bytes(b"\x00\x00" * 9)
+
+            mag = MagnetometryFile(str(dat_path))
+            assert mag.shape == (3, 3)
 
 
 class TestSEGYParser:

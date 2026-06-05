@@ -18,6 +18,7 @@ fn dig_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(parse_dzt, m)?)?;
     m.add_function(wrap_pyfunction!(parse_dt1, m)?)?;
     m.add_function(wrap_pyfunction!(parse_dzg, m)?)?;
+    m.add_function(wrap_pyfunction!(parse_magnetometry, m)?)?;
     m.add_function(wrap_pyfunction!(apply_dewow, m)?)?;
     m.add_function(wrap_pyfunction!(apply_bandpass, m)?)?;
     Ok(())
@@ -44,6 +45,13 @@ fn parse_dt1(path: &str, hd_content: Option<&str>) -> PyResult<PyObject> {
 fn parse_dzg(path: &str) -> PyResult<Vec<(usize, f64, f64, f64)>> {
     parser::dzt::parse_dzg(path)
         .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))
+}
+
+#[pyfunction]
+fn parse_magnetometry(dat_path: &str, grd_path: &str) -> PyResult<PyObject> {
+    let survey = parser::magnetometry::parse_file(dat_path, grd_path)
+        .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
+    Ok(Python::with_gil(|py| survey.into_py(py)))
 }
 
 // ── DSP entry points ─────────────────────────────────────────────────

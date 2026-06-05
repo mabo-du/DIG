@@ -6,6 +6,7 @@ from dig.core.dig_core import (
     parse_dzt,
     parse_dt1,
     parse_dzg,
+    parse_magnetometry,
     apply_dewow,
     apply_bandpass,
 )
@@ -16,6 +17,7 @@ __all__ = [
     "parse_dzt",
     "parse_dt1",
     "parse_dzg",
+    "parse_magnetometry",
     "apply_dewow",
     "apply_bandpass",
 ]
