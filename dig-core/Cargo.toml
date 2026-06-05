@@ -1,0 +1,28 @@
+[package]
+name = "dig-core"
+version = "0.1.0"
+edition = "2021"
+description = "High-performance Rust backend for DIG geophysics processing"
+
+[lib]
+name = "dig_core"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.22", features = ["extension-module"] }
+numpy = "0.22"
+ndarray = "0.16"
+nom = "7"
+rustfft = "6"
+memmap2 = "0.9"
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3

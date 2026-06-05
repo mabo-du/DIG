@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Processing Recipe",
+  "description": "Configurable DSP pipeline definition — shareable between users and sessions.",
+  "type": "object",
+  "properties": {
+    "recipe_name": { "type": "string" },
+    "recipe_version": { "type": "string" },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "time_zero_correction", "dewow", "background_removal",
+              "bandpass", "sec_gain", "agc", "linear_gain",
+              "topographic_correction", "stolt_migration", "kirchhoff_migration",
+              "destagger", "despike", "destripe", "interpolate"
+            ]
+          },
+          "enabled": { "type": "boolean", "default": true },
+          "parameters": { "type": "object" }
+        },
+        "required": ["name"]
+      }
+    },
+    "export": {
+      "type": "object",
+      "properties": {
+        "format": { "type": "string", "enum": ["geotiff", "cog", "csv", "geojson"] },
+        "crs_epsg": { "type": "integer" },
+        "pixel_size_m": { "type": "number" }
+      }
+    }
+  },
+  "required": ["recipe_name", "steps"]
+}

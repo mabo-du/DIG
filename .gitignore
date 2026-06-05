@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Rust
+dig-core/target/
+
+# Compiled extensions
+*.so
+*.pyd
+*.dylib
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test data (large files)
+test_data/*.dzt
+test_data/*.dt1
+test_data/*.dat
+test_data/*.grd
+test_data/*.sgy
+
+# Environment
+.env
+.env.local
+
+# Coverage
+htmlcov/
+.coverage
+coverage/

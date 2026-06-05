@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Geophysical Anomaly",
+  "description": "Schema for geophysical anomaly detections. Shared across DIG, LiDAR-Relief, and Tollense Rosetta Stone.",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "description": "Unique anomaly identifier" },
+    "survey_id": { "type": "string", "description": "Source survey identifier" },
+    "anomaly_type": {
+      "type": "string",
+      "enum": [
+        "wall", "void", "buried_feature", "pit", "ditch",
+        "hearth", "kiln", "foundation", "road", "trench",
+        "cable", "pipe", "unknown_metallic", "unknown"
+      ]
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "depth_top_m": { "type": "number", "description": "Depth to top of anomaly (m)" },
+    "depth_bottom_m": { "type": "number", "description": "Depth to bottom of anomaly (m)" },
+    "amplitude": { "type": "number", "description": "Peak anomaly amplitude" },
+    "geometry": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["Point", "Polygon", "MultiPolygon"] },
+        "coordinates": { "type": "array" }
+      }
+    },
+    "detection_method": { "type": "string", "description": "Algorithm used for detection" },
+    "processing_step": { "type": "string", "description": "Audit trail step ID" },
+    "timestamp": { "type": "string", "format": "date-time" }
+  },
+  "required": ["id", "anomaly_type", "confidence", "geometry"]
+}

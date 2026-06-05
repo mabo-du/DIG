@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Survey Metadata",
+  "description": "Standard survey metadata schema for DIG and ecosystem tools.",
+  "type": "object",
+  "properties": {
+    "survey_id": { "type": "string" },
+    "instrument": {
+      "type": "object",
+      "properties": {
+        "manufacturer": { "type": "string" },
+        "model": { "type": "string" },
+        "serial_number": { "type": "string" },
+        "antenna_frequency_mhz": { "type": "number" }
+      }
+    },
+    "acquisition": {
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "operator": { "type": "string" },
+        "site_name": { "type": "string" },
+        "grid_size_m": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+        "trace_spacing_m": { "type": "number" },
+        "line_spacing_m": { "type": "number" }
+      }
+    },
+    "coordinate_system": {
+      "type": "object",
+      "properties": {
+        "epsg": { "type": "integer" },
+        "origin_easting": { "type": "number" },
+        "origin_northing": { "type": "number" },
+        "rotation_deg": { "type": "number" }
+      }
+    },
+    "processing_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "step": { "type": "string" },
+          "parameters": { "type": "object" },
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  },
+  "required": ["survey_id", "instrument", "acquisition"]
+}
