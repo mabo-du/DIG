@@ -31,6 +31,15 @@ pub struct PySurvey {
     pub time_window_ns: f32,
     pub channels: u16,
     pub header_offset: usize,
+    /// Raw trace data bytes (contiguous, for formats with interleaved headers like DT1).
+    /// Empty for formats where Python memory-maps directly (DZT).
+    pub trace_data: Vec<u8>,
+    /// Per-trace odometer positions (m), one per trace.
+    pub trace_positions: Vec<f32>,
+    /// Per-trace time-zero offsets (ns), one per trace.
+    pub trace_time_zeros: Vec<f32>,
+    /// Per-trace elevations (m), one per trace.
+    pub trace_elevations: Vec<f32>,
     pub history: Vec<PyProcessingStep>,
 }
 
@@ -51,6 +60,10 @@ impl PySurvey {
             time_window_ns: 0.0,
             channels: 1,
             header_offset: 0,
+            trace_data: Vec::new(),
+            trace_positions: Vec::new(),
+            trace_time_zeros: Vec::new(),
+            trace_elevations: Vec::new(),
             history: Vec::new(),
         }
     }

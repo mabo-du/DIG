@@ -33,8 +33,9 @@ fn parse_dzt(path: &str) -> PyResult<PyObject> {
 }
 
 #[pyfunction]
-fn parse_dt1(path: &str) -> PyResult<PyObject> {
-    let survey = parser::dt1::parse_file(path)
+#[pyo3(signature = (path, hd_content=None))]
+fn parse_dt1(path: &str, hd_content: Option<&str>) -> PyResult<PyObject> {
+    let survey = parser::dt1::parse_file(path, hd_content)
         .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
     Ok(Python::with_gil(|py| survey.into_py(py)))
 }

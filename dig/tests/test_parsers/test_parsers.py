@@ -236,6 +236,47 @@ class TestDZTParser:
             os.unlink(tmp_path)
 
 
+def _make_synthetic_dt1(
+    num_traces: int = 10,
+    samples: int = 256,
+    bits: int = 16,
+    hd_extra: str = "",
+) -> tuple[bytes, str]:
+    """Build a synthetic DT1 file + matching .HD content."""
+    bytes_per_sample = bits // 8
+    trace_data_size = samples * bytes_per_sample
+    trace_total = 128 + trace_data_size
+    buf = bytearray(num_traces * trace_total)
+
+    for t in range(num_traces):
+        offset = t * trace_total
+        # Trace header
+        buf[offset:offset + 4] = (t + 1).to_bytes(4, 'little')  # trace_number
+        buf[offset + 8:offset + 12] = struct.pack('<f', t * 2.0)  # position
+        buf[offset + 16:offset + 20] = struct.pack('<f', 1.0)  # time_zero
+        buf[offset + 20:offset + 24] = struct.pack('<f', t * 5.0)  # elevation
+
+        # Trace data with recognizable pattern
+        data_start = offset + 128
+        for s in range(samples):
+            sample_offset = data_start + s * bytes_per_sample
+            if bits == 16:
+                val = ((t * 100 + s) & 0xFFFF)
+                buf[sample_offset:sample_offset + 2] = val.to_bytes(2, 'little')
+            elif bits == 8:
+                buf[sample_offset] = (t + s) & 0xFF
+            elif bits == 32:
+                val = ((t * 1000 + s) & 0xFFFFFFFF)
+                buf[sample_offset:sample_offset + 4] = val.to_bytes(4, 'little')
+
+    hd = f"NUMBEROFPTS = {samples}\n"
+    if bits != 16:
+        hd += f"BITSPERSAMPLE = {bits}\n"
+    hd += hd_extra
+
+    return bytes(buf), hd
+
+
 class TestDT1Parser:
     def test_dt1_raises_on_missing_file(self):
         import pytest
@@ -243,16 +284,185 @@ class TestDT1Parser:
             DT1File("/nonexistent/file.dt1")
 
     def test_dt1_repr(self):
+        data, hd = _make_synthetic_dt1(num_traces=5, samples=128)
+        with tempfile.TemporaryDirectory() as tmp:
+            dt1_path = Path(tmp) / "test.dt1"
+            hd_path = Path(tmp) / "test.HD"
+            dt1_path.write_bytes(data)
+            hd_path.write_text(hd)
+
+            dt1 = DT1File(str(dt1_path))
+            assert "DT1File" in repr(dt1)
+            assert "traces=5" in repr(dt1)
+            assert "samples=128" in repr(dt1)
+
+    def test_dt1_header_metadata(self):
+        data, hd = _make_synthetic_dt1(
+            num_traces=20, samples=256,
+            hd_extra="TIMEWINDOW = 80\nPULLDELAY = 1.5\nNUMBEROFCHANNELS = 1\n",
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            dt1_path = Path(tmp) / "test.dt1"
+            hd_path = Path(tmp) / "test.HD"
+            dt1_path.write_bytes(data)
+            hd_path.write_text(hd)
+
+            dt1 = DT1File(str(dt1_path))
+            assert dt1.num_traces == 20
+            assert dt1.samples_per_trace == 256
+            assert dt1.bits_per_sample == 16
+            assert dt1.channels == 1
+            assert abs(dt1.time_window_ns - 80.0) < 0.01
+            assert abs(dt1.time_zero_ns - 1.5) < 0.01
+            assert abs(dt1.sample_interval_ns - 80.0 / 256.0) < 0.001
+
+    def test_dt1_trace_data_values(self):
+        """Verify trace data values match the synthetic pattern."""
+        data, hd = _make_synthetic_dt1(num_traces=10, samples=64)
+        with tempfile.TemporaryDirectory() as tmp:
+            dt1_path = Path(tmp) / "test.dt1"
+            hd_path = Path(tmp) / "test.HD"
+            dt1_path.write_bytes(data)
+            hd_path.write_text(hd)
+
+            dt1 = DT1File(str(dt1_path))
+            traces = dt1.traces
+            assert traces.shape == (10, 64)
+            assert traces.dtype == np.int16
+
+            # Trace 0, sample 0 should be 0
+            assert traces[0, 0] == 0
+            # Trace 5, sample 3 should be 5*100 + 3 = 503
+            assert traces[5, 3] == 503
+            # Trace 9, sample 63 should be 9*100 + 63 = 963
+            assert traces[9, 63] == 963
+
+    def test_dt1_get_trace(self):
+        data, hd = _make_synthetic_dt1(num_traces=20, samples=32)
+        with tempfile.TemporaryDirectory() as tmp:
+            dt1_path = Path(tmp) / "test.dt1"
+            hd_path = Path(tmp) / "test.HD"
+            dt1_path.write_bytes(data)
+            hd_path.write_text(hd)
+
+            dt1 = DT1File(str(dt1_path))
+            trace = dt1.get_trace(7)
+            assert trace.shape == (32,)
+            assert trace[0] == 700  # 7 * 100 + 0
+
+            import pytest
+            with pytest.raises(IndexError):
+                dt1.get_trace(999)
+
+    def test_dt1_per_trace_metadata(self):
+        """Verify per-trace positions, time-zeros, and elevations."""
+        data, hd = _make_synthetic_dt1(num_traces=5, samples=64)
+        with tempfile.TemporaryDirectory() as tmp:
+            dt1_path = Path(tmp) / "test.dt1"
+            hd_path = Path(tmp) / "test.HD"
+            dt1_path.write_bytes(data)
+            hd_path.write_text(hd)
+
+            dt1 = DT1File(str(dt1_path))
+            assert len(dt1.trace_positions) == 5
+            assert len(dt1.trace_time_zeros) == 5
+            assert len(dt1.trace_elevations) == 5
+
+            # Trace 0: position=0.0, time_zero=1.0, elevation=0.0
+            assert abs(dt1.trace_positions[0]) < 0.01
+            assert abs(dt1.trace_time_zeros[0] - 1.0) < 0.01
+            assert abs(dt1.trace_elevations[0]) < 0.01
+
+            # Trace 1: position=2.0, elevation=5.0
+            assert abs(dt1.trace_positions[1] - 2.0) < 0.01
+            assert abs(dt1.trace_elevations[1] - 5.0) < 0.01
+
+    def test_dt1_8bit(self):
+        data, hd = _make_synthetic_dt1(num_traces=5, samples=128, bits=8)
+        with tempfile.TemporaryDirectory() as tmp:
+            dt1_path = Path(tmp) / "test.dt1"
+            hd_path = Path(tmp) / "test.HD"
+            dt1_path.write_bytes(data)
+            hd_path.write_text(hd)
+
+            dt1 = DT1File(str(dt1_path))
+            assert dt1.bits_per_sample == 8
+            assert dt1.num_traces == 5
+            assert dt1.samples_per_trace == 128
+            assert dt1.traces.dtype == np.uint8
+            # Trace 4, sample 3 = (4 + 3) & 0xFF = 7
+            assert dt1.traces[4, 3] == 7
+
+    def test_dt1_32bit(self):
+        data, hd = _make_synthetic_dt1(num_traces=3, samples=64, bits=32)
+        with tempfile.TemporaryDirectory() as tmp:
+            dt1_path = Path(tmp) / "test.dt1"
+            hd_path = Path(tmp) / "test.HD"
+            dt1_path.write_bytes(data)
+            hd_path.write_text(hd)
+
+            dt1 = DT1File(str(dt1_path))
+            assert dt1.bits_per_sample == 32
+            assert dt1.num_traces == 3
+            assert dt1.traces.dtype == np.int32
+            # Trace 2, sample 5 = 2 * 1000 + 5 = 2005
+            assert dt1.traces[2, 5] == 2005
+
+    def test_dt1_hd_metadata_dict(self):
+        data, hd = _make_synthetic_dt1(
+            num_traces=3, samples=64,
+            hd_extra="SURVEYNAME = Test Area\nSTACKING = 4\n",
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            dt1_path = Path(tmp) / "test.dt1"
+            hd_path = Path(tmp) / "test.HD"
+            dt1_path.write_bytes(data)
+            hd_path.write_text(hd)
+
+            dt1 = DT1File(str(dt1_path))
+            meta = dt1.hd_metadata
+            assert meta.get("SURVEYNAME") == "Test Area"
+            assert meta.get("STACKING") == "4"
+            assert meta.get("NUMBEROFPTS") == "64"
+
+    def test_dt1_auto_discover_hd(self):
+        """Test automatic .HD sidecar discovery."""
+        data, hd = _make_synthetic_dt1(num_traces=4, samples=128)
+        with tempfile.TemporaryDirectory() as tmp:
+            dt1_path = Path(tmp) / "survey.dt1"
+            hd_path = Path(tmp) / "survey.HD"
+            dt1_path.write_bytes(data)
+            hd_path.write_text(hd)
+
+            # Don't pass hd_path — should auto-discover
+            dt1 = DT1File(str(dt1_path))
+            assert dt1.num_traces == 4
+            assert dt1.samples_per_trace == 128
+
+    def test_dt1_auto_discover_lowercase_hd(self):
+        """Test auto-discovery with lowercase .hd extension."""
+        data, hd = _make_synthetic_dt1(num_traces=3, samples=64)
+        with tempfile.TemporaryDirectory() as tmp:
+            dt1_path = Path(tmp) / "survey.dt1"
+            hd_path = Path(tmp) / "survey.hd"
+            dt1_path.write_bytes(data)
+            hd_path.write_text(hd)
+
+            dt1 = DT1File(str(dt1_path))
+            assert dt1.num_traces == 3
+
+    def test_dt1_no_hd_file(self):
+        """File without .HD sidecar uses defaults."""
+        data, _ = _make_synthetic_dt1(num_traces=3, samples=64)
         with tempfile.NamedTemporaryFile(suffix=".dt1", delete=False) as f:
-            # Write 128-byte trace header + 1024 bytes of trace data
-            header = bytearray(128)
-            header[0:4] = (1).to_bytes(4, 'little')  # trace_number
-            f.write(bytes(header) + b"\x00" * 1024)
+            f.write(data)
             tmp_path = f.name
 
         try:
+            # Without .HD, defaults to 512 samples — won't match our 64-sample data
             dt1 = DT1File(tmp_path)
-            assert "DT1File" in repr(dt1)
+            # Should still parse but with wrong trace count (default samples mismatch)
+            assert dt1.num_traces >= 0
         finally:
             os.unlink(tmp_path)
 

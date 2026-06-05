@@ -54,8 +54,8 @@ class DZTFile:
 
     @property
     def _numpy_dtype(self) -> np.dtype:
-        mapping = {8: np.uint8, 16: np.int16, 32: np.int32}
-        return mapping.get(self._survey.bits_per_sample, np.int16)
+        mapping = {8: np.dtype(np.uint8), 16: np.dtype(np.int16), 32: np.dtype(np.int32)}
+        return mapping.get(self._survey.bits_per_sample, np.dtype(np.int16))
 
     @property
     def traces(self) -> np.ndarray:
