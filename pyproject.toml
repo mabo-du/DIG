@@ -41,7 +41,7 @@ gpu = [
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
-module-name = "dig.core._native"
+module-name = "dig.core.dig_core"
 manifest-path = "dig-core/Cargo.toml"
 
 [tool.ruff]

@@ -30,6 +30,7 @@ pub struct PySurvey {
     pub time_zero_ns: f32,
     pub time_window_ns: f32,
     pub channels: u16,
+    pub header_offset: usize,
     pub history: Vec<PyProcessingStep>,
 }
 
@@ -49,6 +50,7 @@ impl PySurvey {
             time_zero_ns: 0.0,
             time_window_ns: 0.0,
             channels: 1,
+            header_offset: 0,
             history: Vec::new(),
         }
     }

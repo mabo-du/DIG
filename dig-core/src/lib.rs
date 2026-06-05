@@ -12,11 +12,12 @@ use pyo3::prelude::*;
 
 /// DIG core Python module.
 #[pymodule]
-fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn dig_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<types::survey::PySurvey>()?;
     m.add_class::<types::survey::PyProcessingStep>()?;
     m.add_function(wrap_pyfunction!(parse_dzt, m)?)?;
     m.add_function(wrap_pyfunction!(parse_dt1, m)?)?;
+    m.add_function(wrap_pyfunction!(parse_dzg, m)?)?;
     m.add_function(wrap_pyfunction!(apply_dewow, m)?)?;
     m.add_function(wrap_pyfunction!(apply_bandpass, m)?)?;
     Ok(())
@@ -36,6 +37,12 @@ fn parse_dt1(path: &str) -> PyResult<PyObject> {
     let survey = parser::dt1::parse_file(path)
         .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
     Ok(Python::with_gil(|py| survey.into_py(py)))
+}
+
+#[pyfunction]
+fn parse_dzg(path: &str) -> PyResult<Vec<(usize, f64, f64, f64)>> {
+    parser::dzt::parse_dzg(path)
+        .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))
 }
 
 // ── DSP entry points ─────────────────────────────────────────────────
