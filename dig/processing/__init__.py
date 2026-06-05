@@ -10,6 +10,7 @@ from dig.processing import (
     migration,
     magnetometry as mag_processing,
 )
+from dig.processing.pipeline import ProcessingPipeline, ProcessingNode
 
 __all__ = [
     "time_zero",
@@ -20,4 +21,6 @@ __all__ = [
     "topography",
     "migration",
     "mag_processing",
+    "ProcessingPipeline",
+    "ProcessingNode",
 ]

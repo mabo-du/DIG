@@ -28,10 +28,12 @@ pub fn dewow(data: &[f32], window_size: usize) -> Vec<f32> {
     result
 }
 
-/// Apply a bandpass filter via FFT.
+/// Apply a bandpass filter using a raised-cosine (Tukey) window in the
+/// frequency domain.
 ///
-/// Transforms data to frequency domain, applies a rectangular window
-/// between `low_cut` and `high_cut` Hz, then inverse-transforms.
+/// Unlike a rectangular window (which introduces Gibbs ringing), the
+/// raised-cosine transition provides smooth roll-off at the passband
+/// edges, eliminating ringing artifacts.
 ///
 /// This is a zero-phase filter (forward FFT → mask → inverse FFT).
 pub fn bandpass(data: &[f32], sample_rate: f32, low_cut: f32, high_cut: f32) -> Vec<f32> {
@@ -46,17 +48,32 @@ pub fn bandpass(data: &[f32], sample_rate: f32, low_cut: f32, high_cut: f32) -> 
     // Forward FFT
     fft.process(&mut spectrum);
 
-    // Apply bandpass mask
+    // Apply raised-cosine (Tukey) bandpass mask
+    let transition_width = 0.1; // 10% of passband for roll-off
     for (i, bin) in spectrum.iter_mut().enumerate() {
         let freq = (i as f32 / len as f32) * sample_rate;
-        if freq < low_cut || freq > high_cut {
-            // Also mask the negative frequency mirror
-            *bin = Complex::new(0.0, 0.0);
-        }
-        // Also mask the mirrored half
-        let freq_mirror = ((len - i) as f32 / len as f32) * sample_rate;
-        if i > 0 && (freq_mirror < low_cut || freq_mirror > high_cut) {
-            *bin = Complex::new(0.0, 0.0);
+
+        if freq >= low_cut && freq <= high_cut {
+            // Passband — full amplitude
+            // (keep as-is)
+        } else if freq < low_cut {
+            // Low-frequency stopband — smooth roll-off
+            let dist = (low_cut - freq) / (low_cut * transition_width).max(1.0);
+            let gain = if dist < 1.0 {
+                0.5 * (1.0 + (dist * std::f32::consts::PI).cos())
+            } else {
+                0.0
+            };
+            *bin = Complex::new(bin.re * gain, bin.im * gain);
+        } else {
+            // High-frequency stopband — smooth roll-off
+            let dist = (freq - high_cut) / (high_cut * transition_width).max(1.0);
+            let gain = if dist < 1.0 {
+                0.5 * (1.0 + (dist * std::f32::consts::PI).cos())
+            } else {
+                0.0
+            };
+            *bin = Complex::new(bin.re * gain, bin.im * gain);
         }
     }
 

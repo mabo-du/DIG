@@ -30,7 +30,8 @@ class TestTimeZero:
         trace = np.zeros(100)
         trace[30] = 10.0
         # Add small noise so noise floor is non-zero
-        trace[:10] = np.random.randn(10) * 0.01
+        rng = np.random.default_rng(42)
+        trace[:10] = rng.normal(0, 0.01, 10)
         t0 = find_time_zero_threshold(trace, threshold=3.0)
         assert t0 == 30
 
