@@ -38,7 +38,7 @@ def stolt_migration(
     padded = np.zeros((n_t_pad, n_s_pad))
     padded[:n_traces, :n_samples] = data
 
-    # 2D FFT
+    # 2D FFT (axis 0 = traces/kx, axis 1 = samples/f)
     spec = fft.fft2(padded)
 
     # Frequency and wavenumber axes
@@ -47,22 +47,35 @@ def stolt_migration(
     f = fft.fftfreq(n_s_pad, d=dt)
     kx = fft.fftfreq(n_t_pad, d=dx)
 
-    # Stolt dispersion relation: kz = sqrt((2f/v)^2 - kx^2)
     v = velocity_m_ns * 1e9  # convert to m/s
-    omega = 2 * np.pi * f
-    kz = np.sqrt(
-        np.maximum(
-            (omega[:, np.newaxis] / (v / 2)) ** 2 - kx[np.newaxis, :] ** 2,
-            0,
-        )
-    )
 
-    # Apply migration in F-K domain
-    # (Simplified: phase shift + interpolation)
-    migrated = fft.ifft2(spec)
+    # Stolt dispersion relation mapping
+    Kx, F_out = np.meshgrid(kx, f, indexing='ij')
+    F_in = np.sign(F_out) * np.sqrt(F_out**2 + (v * Kx / 2)**2)
+
+    spec_shifted = fft.fftshift(spec, axes=1)
+    f_shifted = fft.fftshift(f)
+
+    migrated_spec = np.zeros_like(spec_shifted)
+
+    for i in range(n_t_pad):
+        f_in_i = F_in[i, :]
+        real_part = np.interp(f_in_i, f_shifted, np.real(spec_shifted[i, :]))
+        imag_part = np.interp(f_in_i, f_shifted, np.imag(spec_shifted[i, :]))
+        scale = np.abs(F_out[i, :]) / np.maximum(np.abs(f_in_i), 1e-10)
+        migrated_spec[i, :] = (real_part + 1j * imag_part) * scale
+
+    migrated_spec_unshifted = fft.ifftshift(migrated_spec, axes=1)
+    migrated = fft.ifft2(migrated_spec_unshifted)
 
     return np.real(migrated[:n_traces, :n_samples])
 
+
+try:
+    import dig_core
+    HAS_DIG_CORE = True
+except ImportError:
+    HAS_DIG_CORE = False
 
 def kirchhoff_migration(
     data: np.ndarray,
@@ -87,6 +100,16 @@ def kirchhoff_migration(
         Migrated radargram (same shape)
     """
     data = np.asarray(data, dtype=np.float64)
+    
+    if HAS_DIG_CORE:
+        return dig_core.apply_kirchhoff_migration(
+            data,
+            velocity_m_ns,
+            sample_interval_ns,
+            trace_spacing_m,
+            aperture_traces,
+        )
+
     n_traces, n_samples = data.shape
     result = np.zeros_like(data)
 

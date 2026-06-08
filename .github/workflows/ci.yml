@@ -29,7 +29,10 @@ jobs:
         run: cargo clippy --manifest-path dig-core/Cargo.toml -- -D warnings
 
   test-rust:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -37,7 +40,12 @@ jobs:
         run: cargo test --manifest-path dig-core/Cargo.toml
 
   test-python:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    env:
+      QT_QPA_PLATFORM: offscreen
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -49,7 +57,7 @@ jobs:
       - name: Build Rust extension
         run: maturin develop --manifest-path dig-core/Cargo.toml
       - name: Install Python deps
-        run: pip install numpy scipy pandas rasterio pyproj pytest
+        run: pip install numpy scipy pandas rasterio pyproj pytest PySide6 pyqtgraph pyvista pyvistaqt geopandas fiona pyyaml onnxruntime pytest-benchmark
       - name: Run Python tests
         run: python -m pytest dig/tests/ -v
 
@@ -70,3 +78,15 @@ jobs:
         with:
           name: dig-wheel
           path: target/wheels/*.whl
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install docs deps
+        run: pip install mkdocs mkdocs-material
+      - name: Build docs
+        run: mkdocs build --strict

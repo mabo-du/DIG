@@ -23,7 +23,7 @@ class TestGeoTIFF:
             n_rows=100,
         )
         assert abs(transform.a - 1.0) < 0.01  # pixel width
-        assert abs(transform.e - 1.0) < 0.01  # pixel height
+        assert abs(transform.e - (-1.0)) < 0.01  # pixel height (rasterio convention: north-up is negative)
 
     def test_build_affine_rotation(self):
         transform = _build_affine(

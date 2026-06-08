@@ -6,10 +6,10 @@ description = "High-performance Rust backend for DIG geophysics processing"
 
 [lib]
 name = "dig_core"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-pyo3 = { version = "0.22", features = ["extension-module"] }
+pyo3 = { version = "0.22", features = ["extension-module", "abi3-py312"] }
 numpy = "0.22"
 ndarray = "0.16"
 nom = "7"
@@ -21,8 +21,13 @@ serde_json = "1"
 
 [dev-dependencies]
 tempfile = "3"
+criterion = "0.5"
 
 [profile.release]
 lto = true
 codegen-units = 1
 opt-level = 3
+
+[[bench]]
+name = "processing_benches"
+harness = false

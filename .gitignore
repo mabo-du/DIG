@@ -40,3 +40,4 @@ test_data/*.sgy
 htmlcov/
 .coverage
 coverage/
+.gitnexus

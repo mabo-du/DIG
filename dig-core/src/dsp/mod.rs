@@ -4,3 +4,4 @@
 //! All functions operate on flat f32 slices for zero-copy PyO3 interop.
 
 pub mod filter;
+pub mod migration;

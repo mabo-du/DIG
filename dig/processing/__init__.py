@@ -8,6 +8,9 @@ from dig.processing import (
     gain,
     topography,
     migration,
+    detection,
+    batch,
+    assembly,
     magnetometry as mag_processing,
 )
 from dig.processing.pipeline import ProcessingPipeline, ProcessingNode
@@ -20,6 +23,9 @@ __all__ = [
     "gain",
     "topography",
     "migration",
+    "detection",
+    "batch",
+    "assembly",
     "mag_processing",
     "ProcessingPipeline",
     "ProcessingNode",

@@ -1,0 +1,27 @@
+site_name: DIG Documentation
+theme:
+  name: material
+
+plugins:
+  - search
+  - mkdocstrings
+
+nav:
+  - Home: index.md
+  - User Manuals:
+    - Getting Started: getting-started.md
+    - Processing Guide: processing-guide.md
+    - Magnetometry Guide: magnetometry-guide.md
+    - Export Guide: export-guide.md
+  - Reference:
+    - Formats: formats.md
+    - Processing Reference: processing-reference.md
+  - Integrations:
+    - QGIS: integrations/qgis.md
+    - Stratigraph: integrations/stratigraph.md
+    - Hoard: integrations/hoard.md
+  - API Reference:
+    - Processing: api/processing.md
+    - Export: api/export.md
+    - Models: api/models.md
+    - Parsers: api/parsers.md

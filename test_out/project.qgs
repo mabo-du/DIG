@@ -1,0 +1,107 @@
+<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
+<qgis version="3.22.0" projectname="DIG Geophysical Survey">
+  <title>DIG Geophysical Survey</title>
+  <projectlayers>
+    
+    <maplayer type="raster" hasScaleBasedVisibilityFlag="0" maxScale="0" minScale="1e+08" autoRefreshTime="0" autoRefreshEnabled="0" refreshOnNotifyEnabled="0" refreshOnNotifyMessage="">
+      <id>dig_layer_0</id>
+      <datasource>/home/mark/Projects/DIG-feature-phase-3-4-5/test_out/raster1.tif</datasource>
+      <layername>raster1</layername>
+      <srs>
+        <spatialrefsys>
+          <authid>EPSG:3857</authid>
+        </spatialrefsys>
+      </srs>
+      <provider>gdal</provider>
+      <pipe>
+        <rasterrenderer type="singlebandpseudocolor" band="1" alphaBand="-1" classificationMin="2.2043278217315674" classificationMax="97.86737823486328" opacity="1">
+          <rasterTransparency/>
+          <minMaxOrigin>
+            <limits>MinMax</limits>
+            <extent>WholeRaster</extent>
+            <statAccuracy>Estimated</statAccuracy>
+            <cumulativeCutLower>0.02</cumulativeCutLower>
+            <cumulativeCutUpper>0.98</cumulativeCutUpper>
+            <stdDevFactor>2</stdDevFactor>
+          </minMaxOrigin>
+          <rastershader>
+            <colorrampshader colorRampType="INTERPOLATED" clip="0" classificationMode="1" maximumValue="97.86737823486328" minimumValue="2.2043278217315674">
+              <colorramp type="gradient" name="[source]">
+                <prop k="color1" v="43,131,186,255"/>
+                <prop k="color2" v="215,25,28,255"/>
+                <prop k="discrete" v="0"/>
+                <prop k="rampType" v="gradient"/>
+              </colorramp>
+              <item alpha="255" value="2.2043278217315674" label="2.2" color="#2b83ba"/>
+              <item alpha="255" value="50.035853028297424" label="50.0" color="#ffffbf"/>
+              <item alpha="255" value="97.86737823486328" label="97.9" color="#d7191c"/>
+            </colorrampshader>
+          </rastershader>
+        </rasterrenderer>
+      </pipe>
+    </maplayer>
+    <maplayer type="raster" hasScaleBasedVisibilityFlag="0" maxScale="0" minScale="1e+08" autoRefreshTime="0" autoRefreshEnabled="0" refreshOnNotifyEnabled="0" refreshOnNotifyMessage="">
+      <id>dig_layer_1</id>
+      <datasource>/home/mark/Projects/DIG-feature-phase-3-4-5/test_out/raster2.tif</datasource>
+      <layername>raster2</layername>
+      <srs>
+        <spatialrefsys>
+          <authid>EPSG:3857</authid>
+        </spatialrefsys>
+      </srs>
+      <provider>gdal</provider>
+      <pipe>
+        <rasterrenderer type="singlebandpseudocolor" band="1" alphaBand="-1" classificationMin="0.9497630000114441" classificationMax="49.0617790222168" opacity="1">
+          <rasterTransparency/>
+          <minMaxOrigin>
+            <limits>MinMax</limits>
+            <extent>WholeRaster</extent>
+            <statAccuracy>Estimated</statAccuracy>
+            <cumulativeCutLower>0.02</cumulativeCutLower>
+            <cumulativeCutUpper>0.98</cumulativeCutUpper>
+            <stdDevFactor>2</stdDevFactor>
+          </minMaxOrigin>
+          <rastershader>
+            <colorrampshader colorRampType="INTERPOLATED" clip="0" classificationMode="1" maximumValue="49.0617790222168" minimumValue="0.9497630000114441">
+              <colorramp type="gradient" name="[source]">
+                <prop k="color1" v="43,131,186,255"/>
+                <prop k="color2" v="215,25,28,255"/>
+                <prop k="discrete" v="0"/>
+                <prop k="rampType" v="gradient"/>
+              </colorramp>
+              <item alpha="255" value="0.9497630000114441" label="0.9" color="#2b83ba"/>
+              <item alpha="255" value="25.00577101111412" label="25.0" color="#ffffbf"/>
+              <item alpha="255" value="49.0617790222168" label="49.1" color="#d7191c"/>
+            </colorrampshader>
+          </rastershader>
+        </rasterrenderer>
+      </pipe>
+    </maplayer>
+  </projectlayers>
+  <layer-tree-group>
+    <customproperties/>
+    
+    <layer-tree-layer name="raster1" providerKey="gdal" source="/home/mark/Projects/DIG-feature-phase-3-4-5/test_out/raster1.tif" checked="Qt::Checked" id="dig_layer_0" expanded="1">
+      <customproperties/>
+    </layer-tree-layer>
+    <layer-tree-layer name="raster2" providerKey="gdal" source="/home/mark/Projects/DIG-feature-phase-3-4-5/test_out/raster2.tif" checked="Qt::Checked" id="dig_layer_1" expanded="1">
+      <customproperties/>
+    </layer-tree-layer>
+  </layer-tree-group>
+  <mapcanvas>
+    <units>meters</units>
+    <extent>
+      <xmin>999.5</xmin>
+      <ymin>1900.5</ymin>
+      <xmax>1099.5</xmax>
+      <ymax>2000.5</ymax>
+    </extent>
+    <projections>
+      <crs>
+        <spatialrefsys>
+          <authid>EPSG:3857</authid>
+        </spatialrefsys>
+      </crs>
+    </projections>
+  </mapcanvas>
+</qgis>

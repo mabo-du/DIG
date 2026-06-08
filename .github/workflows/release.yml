@@ -2,65 +2,114 @@ name: Release
 
 on:
   push:
-    tags: ["v*"]
+    tags:
+      - "v*"
 
 jobs:
-  build-linux:
+  pypi-publish:
+    name: Publish to PyPI
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       - name: Install maturin
         run: pip install maturin
-      - name: Build wheels
-        run: maturin build --manifest-path dig-core/Cargo.toml --release --out dist
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dig-linux-${{ matrix.python-version }}
-          path: dist/*.whl
+      - name: Build and Publish Wheels
+        env:
+          MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: maturin publish --manifest-path dig-core/Cargo.toml --release -m pypi
 
-  build-windows:
-    runs-on: windows-latest
+  build-executables:
+    name: Build Standalone Executables
     strategy:
       matrix:
-        python-version: ["3.12"]
+        include:
+          - os: ubuntu-latest
+            target: linux
+          - os: windows-latest
+            target: windows
+          - os: macos-latest
+            target: macos
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - name: Install maturin
-        run: pip install maturin
-      - name: Build wheels
-        run: maturin build --manifest-path dig-core/Cargo.toml --release --out dist
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dig-windows-${{ matrix.python-version }}
-          path: dist/*.whl
+      
+      - name: Install Dependencies
+        run: |
+          pip install maturin pyinstaller
+          pip install numpy scipy pandas rasterio pyproj PySide6 pyqtgraph pyvista pyvistaqt geopandas fiona pyyaml onnxruntime
 
-  build-macos:
-    runs-on: macos-latest
-    strategy:
-      matrix:
-        python-version: ["3.12"]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Build Rust extension
+        run: maturin develop --manifest-path dig-core/Cargo.toml --release
+
+      - name: PyInstaller Build
+        run: pyinstaller packaging/dig.spec --clean
+
+      - name: Package Linux AppImage
+        if: matrix.target == 'linux'
+        run: |
+          curl -Lo appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+          mkdir -p AppDir/usr/bin
+          cp -r dist/dig/* AppDir/usr/bin/
+          cat << 'DESKTOP' > AppDir/dig.desktop
+          [Desktop Entry]
+          Name=DIG
+          Exec=dig
+          Icon=dig
+          Type=Application
+          Categories=Science;
+          DESKTOP
+          touch AppDir/dig.png
+          cat << 'APP' > AppDir/AppRun
+          #!/bin/bash
+          HERE="$(dirname "$(readlink -f "${0}")")"
+          export LD_LIBRARY_PATH="${HERE}/usr/bin:${LD_LIBRARY_PATH}"
+          exec "${HERE}/usr/bin/dig" "$@"
+          APP
+          chmod +x AppDir/AppRun
+          ./appimagetool AppDir DIG-Linux-x86_64.AppImage
+
+      - name: Package Windows InnoSetup
+        if: matrix.target == 'windows'
+        run: |
+          # Create a basic InnoSetup script
+          echo "[Setup]" > installer.iss
+          echo "AppName=DIG" >> installer.iss
+          echo "AppVersion=${{ github.ref_name }}" >> installer.iss
+          echo "DefaultDirName={autopf}\DIG" >> installer.iss
+          echo "OutputDir=." >> installer.iss
+          echo "OutputBaseFilename=DIG-Windows-Setup" >> installer.iss
+          echo "[Files]" >> installer.iss
+          echo "Source: ""dist\dig\*"" ; DestDir: ""{app}""; Flags: ignoreversion recursesubdirs createallsubdirs" >> installer.iss
+          iscc installer.iss
+
+      - name: Package macOS DMG
+        if: matrix.target == 'macos'
+        run: |
+          bash packaging/macos/sign.sh dist/dig
+          pip install dmgbuild
+          # dmgbuild is a python tool to create macos dmgs
+          cat << 'DMG_CONF' > settings.py
+          import os
+          files = ['dist/dig']
+          symlinks = { 'Applications': '/Applications' }
+          icon_locations = { 'dig': (100, 100), 'Applications': (300, 100) }
+          DMG_CONF
+          dmgbuild -s settings.py "DIG" DIG-macOS.dmg
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
         with:
-          python-version: ${{ matrix.python-version }}
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - name: Install maturin
-        run: pip install maturin
-      - name: Build wheels
-        run: maturin build --manifest-path dig-core/Cargo.toml --release --out dist
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dig-macos-${{ matrix.python-version }}
-          path: dist/*.whl
+          files: |
+            DIG-Linux-x86_64.AppImage
+            DIG-Windows-Setup.exe
+            DIG-macOS.dmg
+          token: ${{ secrets.GITHUB_TOKEN }}

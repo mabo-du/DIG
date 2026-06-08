@@ -96,16 +96,8 @@ pub fn sec_gain(data: &[f32], sample_rate: f32, alpha: f32) -> Vec<f32> {
         .enumerate()
         .map(|(i, &sample)| {
             let t = i as f32 * dt;
-            if t <= 0.0 {
-                sample
-            } else {
-                let gain = t * (alpha * t).exp();
-                if gain.is_finite() && gain > 0.0 {
-                    sample / gain
-                } else {
-                    sample
-                }
-            }
+            let gain = t * (alpha * t).exp();
+            sample * gain
         })
         .collect()
 }
@@ -161,8 +153,8 @@ mod tests {
         let data = vec![1.0f32; 50];
         let result = sec_gain(&data, 100.0, 0.5);
         // Gain should increase with time (deeper = more amplification)
-        assert!(result[0] > 0.0);
-        assert!(result[49] > result[0]);
+        assert!(result[1] > 0.0);
+        assert!(result[49] > result[1]);
     }
 
     #[test]

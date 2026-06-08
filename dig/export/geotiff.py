@@ -1,12 +1,13 @@
-"""Production-grade GeoTIFF export with proper CRS and affine transforms.
+"""geotiff.py — Production-grade GeoTIFF export with proper CRS and affine transforms.
 
-Based on the research papers:
-  - "Geospatial GeoTIFF Pipeline for Archaeologists"
-  - "From Arbitrary Grid to Seamless GIS"
+exports: export_geotiff(data, output_path, crs_epsg, origin_easting, origin_northing, pixel_size, rotation_deg, band_descriptions, nodata) -> str, export_cog(data, output_path, **kwargs) -> str
+used_by: callers → export_geotiff, export_cog
+rules:
+  - Affine transform must use standard rasterio definition (negative e for north-up)
 """
 
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 import numpy as np
 import rasterio
 from rasterio.transform import Affine
@@ -43,16 +44,18 @@ def _build_affine(
     sin_a = np.sin(alpha)
 
     # Half-pixel shift (PixelIsArea convention)
+    # The provided origin is the center of the top-left pixel.
+    # Rasterio expects the top-left corner of the top-left pixel.
     half_px = pixel_size / 2.0
-    origin_easting -= half_px * cos_a + half_px * sin_a
-    origin_northing += half_px * sin_a - half_px * cos_a
+    origin_easting += -half_px * cos_a + half_px * sin_a
+    origin_northing += half_px * sin_a + half_px * cos_a
 
     return Affine(
         pixel_size * cos_a,   # a: pixel width in geographic x
         -pixel_size * sin_a,  # b: row rotation (x-skew)
         origin_easting,       # c: x-coordinate of origin
-        pixel_size * sin_a,   # d: column rotation (y-skew)
-        pixel_size * cos_a,   # e: pixel height (positive = north-up)
+        -pixel_size * sin_a,  # d: column rotation (y-skew)
+        -pixel_size * cos_a,  # e: pixel height (negative = north-up)
         origin_northing,      # f: y-coordinate of origin
     )
 
@@ -143,7 +146,7 @@ def export_geotiff(
 def export_cog(
     data: np.ndarray,
     output_path: str | Path,
-    **kwargs,
+    **kwargs: Any,
 ) -> str:
     """Export as Cloud-Optimized GeoTIFF (COG).
 

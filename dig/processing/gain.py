@@ -31,10 +31,8 @@ def sec_gain(data: np.ndarray, sample_rate: float, alpha: float = 0.5) -> np.nda
 
     # SEC gain function
     gain = t * np.exp(alpha * t)
-    gain[0] = 1.0  # avoid division by zero at t=0
-    gain = np.where(np.isfinite(gain) & (gain > 0), gain, 1.0)
-
-    return data / gain[np.newaxis, :]
+    
+    return data * gain[np.newaxis, :]
 
 
 def agc(data: np.ndarray, window_samples: int = 50) -> np.ndarray:

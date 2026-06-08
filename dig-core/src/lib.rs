@@ -4,7 +4,7 @@
 //! processing, and memory-mapped I/O — exposed to Python via PyO3.
 
 mod parser;
-mod dsp;
+pub mod dsp;
 mod io;
 mod types;
 
@@ -21,6 +21,9 @@ fn dig_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(parse_magnetometry, m)?)?;
     m.add_function(wrap_pyfunction!(apply_dewow, m)?)?;
     m.add_function(wrap_pyfunction!(apply_bandpass, m)?)?;
+    m.add_function(wrap_pyfunction!(apply_sec_gain, m)?)?;
+    m.add_function(wrap_pyfunction!(apply_agc, m)?)?;
+    m.add_function(wrap_pyfunction!(apply_kirchhoff_migration, m)?)?;
     Ok(())
 }
 
@@ -64,4 +67,36 @@ fn apply_dewow(data: Vec<f32>, window_size: usize) -> Vec<f32> {
 #[pyfunction]
 fn apply_bandpass(data: Vec<f32>, sample_rate: f32, low_cut: f32, high_cut: f32) -> Vec<f32> {
     dsp::filter::bandpass(&data, sample_rate, low_cut, high_cut)
+}
+
+#[pyfunction]
+fn apply_sec_gain(data: Vec<f32>, sample_rate: f32, alpha: f32) -> Vec<f32> {
+    dsp::filter::sec_gain(&data, sample_rate, alpha)
+}
+
+#[pyfunction]
+fn apply_agc(data: Vec<f32>, window_size: usize) -> Vec<f32> {
+    dsp::filter::agc(&data, window_size)
+}
+
+#[pyfunction]
+#[pyo3(signature = (data, velocity_m_ns=0.1, sample_interval_ns=0.1, trace_spacing_m=0.05, aperture_traces=30))]
+fn apply_kirchhoff_migration<'py>(
+    py: Python<'py>,
+    data: numpy::PyReadonlyArray2<'py, f64>,
+    velocity_m_ns: f64,
+    sample_interval_ns: f64,
+    trace_spacing_m: f64,
+    aperture_traces: usize,
+) -> pyo3::Bound<'py, numpy::PyArray2<f64>> {
+    let array_view = data.as_array();
+    let result = dsp::migration::kirchhoff_migration(
+        array_view,
+        velocity_m_ns,
+        sample_interval_ns,
+        trace_spacing_m,
+        aperture_traces,
+    );
+    use numpy::IntoPyArray;
+    result.into_pyarray_bound(py)
 }
