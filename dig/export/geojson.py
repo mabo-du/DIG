@@ -1,8 +1,7 @@
 """GeoJSON export for GIS and ecosystem integration."""
 
-from pathlib import Path
 import json
-import numpy as np
+from pathlib import Path
 
 
 def export_geojson(

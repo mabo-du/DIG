@@ -1,7 +1,7 @@
 """3D GPR volume model — assembled from multiple 2D profiles."""
 
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
+
 import numpy as np
 
 

@@ -6,7 +6,7 @@ constant velocity) and Kirchhoff (time-space domain, variable velocity).
 """
 
 import numpy as np
-from scipy import fft, signal
+from scipy import fft
 
 
 def stolt_migration(
@@ -50,8 +50,8 @@ def stolt_migration(
     v = velocity_m_ns * 1e9  # convert to m/s
 
     # Stolt dispersion relation mapping
-    Kx, F_out = np.meshgrid(kx, f, indexing='ij')
-    F_in = np.sign(F_out) * np.sqrt(F_out**2 + (v * Kx / 2)**2)
+    Kx, F_out = np.meshgrid(kx, f, indexing="ij")
+    F_in = np.sign(F_out) * np.sqrt(F_out**2 + (v * Kx / 2) ** 2)
 
     spec_shifted = fft.fftshift(spec, axes=1)
     f_shifted = fft.fftshift(f)
@@ -73,9 +73,11 @@ def stolt_migration(
 
 try:
     import dig_core
+
     HAS_DIG_CORE = True
 except ImportError:
     HAS_DIG_CORE = False
+
 
 def kirchhoff_migration(
     data: np.ndarray,
@@ -100,7 +102,7 @@ def kirchhoff_migration(
         Migrated radargram (same shape)
     """
     data = np.asarray(data, dtype=np.float64)
-    
+
     if HAS_DIG_CORE:
         return dig_core.apply_kirchhoff_migration(
             data,
@@ -130,7 +132,7 @@ def kirchhoff_migration(
                 min(n_traces, i + aperture_traces + 1),
             ):
                 dx = abs(k - i) * trace_spacing_m
-                t = np.sqrt(t0 ** 2 + (2 * dx / v) ** 2)
+                t = np.sqrt(t0**2 + (2 * dx / v) ** 2)
                 t_sample = t / dt
                 if 0 <= t_sample < n_samples - 1:
                     # Linear interpolation

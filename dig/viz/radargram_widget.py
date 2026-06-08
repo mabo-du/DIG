@@ -12,55 +12,55 @@ from typing import Callable
 
 import numpy as np
 import pyqtgraph as pg
-from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtWidgets
 
 from dig.viz.colormaps import COLORMAPS
 
 
 class ImageProcessor(QtCore.QThread):
     """Background worker for radargram image processing."""
-    
+
     # Emits: rgba, vmin, vmax, n_traces, n_samples
     resultReady = QtCore.Signal(object, float, float, int, int)
-    
+
     def __init__(
         self,
         data: np.ndarray,
         gain_callback: Callable | None,
         colormap_name: str,
-        parent: QtCore.QObject | None = None
+        parent: QtCore.QObject | None = None,
     ):
         super().__init__(parent)
         self.data = data
         self.gain_callback = gain_callback
         self.colormap_name = colormap_name
         self.is_cancelled = False
-        
+
     def run(self) -> None:
         display_data = self.data
         if self.gain_callback is not None:
             display_data = self.gain_callback(display_data)
-        
+
         if self.is_cancelled:
             return
-            
+
         lut = COLORMAPS.get(self.colormap_name)
         if lut is None:
             return
-            
+
         vmin = float(np.percentile(display_data, 2))
         vmax = float(np.percentile(display_data, 98))
-        
+
         if self.is_cancelled:
             return
-            
+
         normalized = np.clip((display_data - vmin) / (vmax - vmin + 1e-12), 0, 1)
         indices = (normalized * (len(lut) - 1)).astype(np.uint16)
         rgba = lut[indices]
-        
+
         if self.is_cancelled:
             return
-            
+
         n_traces, n_samples = self.data.shape
         self.resultReady.emit(rgba, vmin, vmax, n_traces, n_samples)
 
@@ -157,7 +157,7 @@ class RadargramWidget(pg.GraphicsLayoutWidget):
     def _update_image(self) -> None:
         if self._data is None:
             return
-            
+
         if self._worker is not None:
             self._worker.is_cancelled = True
             try:
@@ -166,11 +166,15 @@ class RadargramWidget(pg.GraphicsLayoutWidget):
                 pass
             self._worker = None
 
-        self._worker = ImageProcessor(self._data, self._gain_callback, self._colormap_name, parent=self)
+        self._worker = ImageProcessor(
+            self._data, self._gain_callback, self._colormap_name, parent=self
+        )
         self._worker.resultReady.connect(self._on_worker_finished)
         self._worker.start()
 
-    def _on_worker_finished(self, rgba: np.ndarray, vmin: float, vmax: float, n_traces: int, n_samples: int) -> None:
+    def _on_worker_finished(
+        self, rgba: np.ndarray, vmin: float, vmax: float, n_traces: int, n_samples: int
+    ) -> None:
         self.image.setImage(rgba, autoLevels=False)
         self.colorbar.setLevels((vmin, vmax))
         self.image.setRect(QtCore.QRectF(0, 0, n_traces, n_samples * self._sample_interval_ns))
@@ -185,14 +189,18 @@ class RadargramWidget(pg.GraphicsLayoutWidget):
         sample_idx = max(0, min(int(round(y / self._sample_interval_ns)), self._data.shape[1] - 1))
         value = self._data[trace_idx, sample_idx]
         time_ns = sample_idx * self._sample_interval_ns + self._time_zero_ns
-        self.info_label.setText(f"Trace: {trace_idx}  |  Time: {time_ns:.1f} ns  |  Amp: {value:.2f}")
+        self.info_label.setText(
+            f"Trace: {trace_idx}  |  Time: {time_ns:.1f} ns  |  Amp: {value:.2f}"
+        )
         self.traceSelected.emit(trace_idx, self._data[trace_idx])
 
     def _update_info(self) -> None:
         if self._data is None:
             return
         n_traces, n_samples = self._data.shape
-        self.info_label.setText(f"Traces: {n_traces}  |  Samples: {n_samples}  |  Colormap: {self._colormap_name}")
+        self.info_label.setText(
+            f"Traces: {n_traces}  |  Samples: {n_samples}  |  Colormap: {self._colormap_name}"
+        )
 
     def reset_view(self) -> None:
         if self._data is not None:

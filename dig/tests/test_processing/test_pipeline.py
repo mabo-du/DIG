@@ -6,11 +6,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import json
+
 import numpy as np
-from dig.processing.pipeline import ProcessingPipeline, ProcessingNode
-from dig.processing.dewow import dewow_fft
+
 from dig.processing.background import remove_background_global
+from dig.processing.dewow import dewow_fft
 from dig.processing.gain import sec_gain
+from dig.processing.pipeline import ProcessingNode, ProcessingPipeline
 
 
 class TestProcessingPipeline:
@@ -82,6 +84,7 @@ class TestProcessingPipeline:
         pipe = ProcessingPipeline(data)
 
         import pytest
+
         with pytest.raises(ValueError, match="Step 99 not found"):
             pipe.branch(step_id=99)
 
@@ -136,6 +139,7 @@ class TestProcessingPipeline:
         assert step1.name == "dewow_fft"
 
         import pytest
+
         with pytest.raises(ValueError):
             pipe.get_step(99)
 

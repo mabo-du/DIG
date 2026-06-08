@@ -7,9 +7,10 @@ rules:
 """
 
 from typing import List, Optional
+
 import numpy as np
-from scipy.interpolate import griddata
 import pyproj
+from scipy.interpolate import griddata
 
 from dig.models.grid import Grid3D
 from dig.models.profile import Profile
@@ -24,11 +25,11 @@ def assemble_regular_grid(
     Assumes all profiles are oriented in the same direction, start at the
     same inline position, and are separated by a constant crossline spacing.
     The volume is truncated to the shortest profile length and sample depth.
-    
+
     Args:
         profiles: List of parallel 2D Profile objects.
         crossline_spacing_m: Distance between adjacent profiles.
-        
+
     Returns:
         Grid3D volume.
     """
@@ -95,7 +96,9 @@ def assemble_irregular_grid(
 
     for p, coords in zip(profiles, trace_coordinates):
         if len(coords) != p.num_traces:
-            raise ValueError(f"Profile {p.name} has {p.num_traces} traces but {len(coords)} coordinates.")
+            raise ValueError(
+                f"Profile {p.name} has {p.num_traces} traces but {len(coords)} coordinates."
+            )
 
         x_coords = coords[:, 0]
         y_coords = coords[:, 1]
@@ -118,21 +121,12 @@ def assemble_irregular_grid(
     min_y, max_y = np.min(points_y), np.max(points_y)
 
     # Create coordinate grids
-    grid_x, grid_y = np.mgrid[
-        min_x:max_x:grid_spacing_m,
-        min_y:max_y:grid_spacing_m
-    ]
+    grid_x, grid_y = np.mgrid[min_x:max_x:grid_spacing_m, min_y:max_y:grid_spacing_m]
 
     points = np.column_stack((points_x, points_y))
 
     # Perform ND interpolation over all depth slices simultaneously
-    grid_data_interp = griddata(
-        points,
-        values,
-        (grid_x, grid_y),
-        method=method,
-        fill_value=0.0
-    )
+    grid_data_interp = griddata(points, values, (grid_x, grid_y), method=method, fill_value=0.0)
 
     return Grid3D(
         data=grid_data_interp,

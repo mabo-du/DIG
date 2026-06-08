@@ -1,19 +1,21 @@
 """Signal processing pipeline — DAG-based, immutable processing steps."""
 
 from dig.processing import (
-    time_zero,
-    dewow,
+    assembly,
     background,
     bandpass,
-    gain,
-    topography,
-    migration,
-    detection,
     batch,
-    assembly,
+    detection,
+    dewow,
+    gain,
+    migration,
+    time_zero,
+    topography,
+)
+from dig.processing import (
     magnetometry as mag_processing,
 )
-from dig.processing.pipeline import ProcessingPipeline, ProcessingNode
+from dig.processing.pipeline import ProcessingNode, ProcessingPipeline
 
 __all__ = [
     "time_zero",

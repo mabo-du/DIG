@@ -23,9 +23,7 @@ def remove_background_global(data: np.ndarray) -> np.ndarray:
     return data - mean_trace[np.newaxis, :]
 
 
-def remove_background_local(
-    data: np.ndarray, window_traces: int = 20
-) -> np.ndarray:
+def remove_background_local(data: np.ndarray, window_traces: int = 20) -> np.ndarray:
     """Subtract a localized running average trace.
 
     Adapts to non-stationary clutter (changing soil conditions,

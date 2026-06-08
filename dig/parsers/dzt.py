@@ -1,9 +1,10 @@
 """GSSI .DZT format parser (Python wrapper around Rust core)."""
 
 from pathlib import Path
-from typing import Optional
+
 import numpy as np
-from dig.core import parse_dzt, parse_dzg, PySurvey
+
+from dig.core import PySurvey, parse_dzg, parse_dzt
 
 
 class DZTFile:
@@ -34,9 +35,7 @@ class DZTFile:
             mode="r",
             offset=self._survey.header_offset,
         )
-        self._data = self._data.reshape(
-            (self._survey.num_traces, self._survey.samples_per_trace)
-        )
+        self._data = self._data.reshape((self._survey.num_traces, self._survey.samples_per_trace))
 
         # Parse optional .DZG sidecar GPS file
         self._gps_positions: list[tuple[int, float, float, float]] = []
@@ -114,9 +113,7 @@ class DZTFile:
     def get_trace(self, index: int) -> np.ndarray:
         """Return a single trace as a 1D array."""
         if index < 0 or index >= self.num_traces:
-            raise IndexError(
-                f"Trace index {index} out of range (0-{self.num_traces - 1})"
-            )
+            raise IndexError(f"Trace index {index} out of range (0-{self.num_traces - 1})")
         return self._data[index, :]
 
     def __repr__(self) -> str:

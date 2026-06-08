@@ -1,9 +1,10 @@
 """Sensors & Software .DT1/.HD format parser (Python wrapper)."""
 
 from pathlib import Path
-from typing import Optional
+
 import numpy as np
-from dig.core import parse_dt1, PySurvey
+
+from dig.core import PySurvey, parse_dt1
 
 
 class DT1File:
@@ -68,9 +69,9 @@ class DT1File:
         if len(raw) == 0:
             self._traces = np.empty((0, 0), dtype=dtype)
         elif len(raw) >= expected_bytes:
-            self._traces = np.frombuffer(
-                raw[:expected_bytes], dtype=dtype
-            ).reshape(self.num_traces, self.samples_per_trace)
+            self._traces = np.frombuffer(raw[:expected_bytes], dtype=dtype).reshape(
+                self.num_traces, self.samples_per_trace
+            )
         else:
             # Partial data — pad with zeros
             arr = np.frombuffer(raw, dtype=dtype)
@@ -140,9 +141,7 @@ class DT1File:
     def get_trace(self, index: int) -> np.ndarray:
         """Return a single trace as a 1D array."""
         if index < 0 or index >= self.num_traces:
-            raise IndexError(
-                f"Trace index {index} out of range (0-{self.num_traces - 1})"
-            )
+            raise IndexError(f"Trace index {index} out of range (0-{self.num_traces - 1})")
         return self._traces[index, :]
 
     def __repr__(self) -> str:

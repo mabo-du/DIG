@@ -35,8 +35,8 @@ def _build_seismic(n: int = 256) -> np.ndarray:
     for i in range(half):
         t = i / max(half - 1, 1)
         result[i] = [
-            int(255 * t),       # R: 0 → 255
-            int(255 * t),       # G: 0 → 255
+            int(255 * t),  # R: 0 → 255
+            int(255 * t),  # G: 0 → 255
             max(50, int(255 * (1 - t * 0.8))),  # B: 255 → ~50
             255,
         ]
@@ -46,8 +46,8 @@ def _build_seismic(n: int = 256) -> np.ndarray:
         t = (i - half) / max(n - half - 1, 1)
         result[i] = [
             max(50, int(255 * (1 - t * 0.8))),  # R: 255 → ~50
-            int(255 * (1 - t)),    # G: 255 → 0
-            int(255 * (1 - t)),    # B: 255 → 0
+            int(255 * (1 - t)),  # G: 255 → 0
+            int(255 * (1 - t)),  # B: 255 → 0
             255,
         ]
 
@@ -60,28 +60,33 @@ def _build_viridis(n: int = 256) -> np.ndarray:
     Viridis is perceptually uniform and colorblind-friendly.
     Key stops: (0.267, 0.004, 0.329) → (0.127, 0.566, 0.550) → (0.993, 0.906, 0.144)
     """
-    stops = np.array([
-        [0.267, 0.004, 0.329],
-        [0.282, 0.141, 0.458],
-        [0.254, 0.265, 0.530],
-        [0.207, 0.382, 0.549],
-        [0.164, 0.494, 0.528],
-        [0.127, 0.566, 0.550],
-        [0.135, 0.639, 0.549],
-        [0.267, 0.718, 0.510],
-        [0.472, 0.788, 0.431],
-        [0.690, 0.844, 0.323],
-        [0.878, 0.881, 0.209],
-        [0.993, 0.906, 0.144],
-    ])
+    stops = np.array(
+        [
+            [0.267, 0.004, 0.329],
+            [0.282, 0.141, 0.458],
+            [0.254, 0.265, 0.530],
+            [0.207, 0.382, 0.549],
+            [0.164, 0.494, 0.528],
+            [0.127, 0.566, 0.550],
+            [0.135, 0.639, 0.549],
+            [0.267, 0.718, 0.510],
+            [0.472, 0.788, 0.431],
+            [0.690, 0.844, 0.323],
+            [0.878, 0.881, 0.209],
+            [0.993, 0.906, 0.144],
+        ]
+    )
 
     result = np.zeros((n, 4), dtype=np.uint8)
     for i in range(3):
-        result[:, i] = np.interp(
-            np.linspace(0, 1, n),
-            np.linspace(0, 1, len(stops)),
-            stops[:, i],
-        ) * 255
+        result[:, i] = (
+            np.interp(
+                np.linspace(0, 1, n),
+                np.linspace(0, 1, len(stops)),
+                stops[:, i],
+            )
+            * 255
+        )
     result[:, 3] = 255
     return result
 
@@ -115,10 +120,7 @@ def apply_colormap(
     """
     if isinstance(colormap, str):
         if colormap not in COLORMAPS:
-            raise ValueError(
-                f"Unknown colormap '{colormap}'. "
-                f"Available: {list(COLORMAPS.keys())}"
-            )
+            raise ValueError(f"Unknown colormap '{colormap}'. Available: {list(COLORMAPS.keys())}")
         lut = COLORMAPS[colormap]
     else:
         lut = np.asarray(colormap, dtype=np.uint8)

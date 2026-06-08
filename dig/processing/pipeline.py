@@ -169,9 +169,7 @@ class ProcessingPipeline:
             New pipeline starting from that step's data
         """
         if step_id < 0 or step_id >= len(self._nodes):
-            raise ValueError(
-                f"Step {step_id} not found. Pipeline has {len(self._nodes)} steps."
-            )
+            raise ValueError(f"Step {step_id} not found. Pipeline has {len(self._nodes)} steps.")
 
         source = self._nodes[step_id]
         return ProcessingPipeline(
@@ -204,9 +202,7 @@ class ProcessingPipeline:
     def get_step(self, step_id: int) -> ProcessingNode:
         """Get a specific processing step by ID."""
         if step_id < 0 or step_id >= len(self._nodes):
-            raise ValueError(
-                f"Step {step_id} not found. Pipeline has {len(self._nodes)} steps."
-            )
+            raise ValueError(f"Step {step_id} not found. Pipeline has {len(self._nodes)} steps.")
         return self._nodes[step_id]
 
     def _resolve_func_name(self, func: Callable) -> str:

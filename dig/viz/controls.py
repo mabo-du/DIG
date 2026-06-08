@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Callable
-
-import numpy as np
 from PySide6 import QtCore, QtWidgets
 
 from dig.viz.colormaps import COLORMAPS

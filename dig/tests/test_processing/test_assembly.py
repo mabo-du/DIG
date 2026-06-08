@@ -1,16 +1,19 @@
-import pytest
 import numpy as np
+import pytest
+
 from dig.models.profile import Profile
-from dig.processing.assembly import assemble_regular_grid, assemble_irregular_grid
+from dig.processing.assembly import assemble_irregular_grid, assemble_regular_grid
 
 
 def test_assemble_regular_grid():
     # Synthetic data
     p1 = Profile(name="line1", data=np.ones((100, 50)), trace_spacing_m=0.1, sample_interval_ns=0.5)
-    p2 = Profile(name="line2", data=np.ones((100, 50)) * 2, trace_spacing_m=0.1, sample_interval_ns=0.5)
-    
+    p2 = Profile(
+        name="line2", data=np.ones((100, 50)) * 2, trace_spacing_m=0.1, sample_interval_ns=0.5
+    )
+
     grid = assemble_regular_grid([p1, p2], crossline_spacing_m=0.5)
-    
+
     assert grid.data.shape == (100, 2, 50)
     assert grid.inline_spacing_m == 0.1
     assert grid.crossline_spacing_m == 0.5
@@ -24,7 +27,7 @@ def test_assemble_regular_grid_mismatched_lengths():
     # Truncates to minimum length
     p1 = Profile(name="line1", data=np.ones((100, 60)), trace_spacing_m=0.1)
     p2 = Profile(name="line2", data=np.ones((80, 50)), trace_spacing_m=0.1)
-    
+
     grid = assemble_regular_grid([p1, p2])
     assert grid.data.shape == (80, 2, 50)
 
@@ -44,11 +47,11 @@ def test_assemble_irregular_grid():
     # 2 profiles, 10 traces each, 50 samples
     p1 = Profile(name="line1", data=np.ones((10, 50)), trace_spacing_m=0.1)
     p2 = Profile(name="line2", data=np.ones((10, 50)) * 2, trace_spacing_m=0.1)
-    
+
     # Fake coordinates (x, y)
     coords1 = np.column_stack((np.linspace(0, 9, 10), np.zeros(10)))
     coords2 = np.column_stack((np.linspace(0, 9, 10), np.ones(10)))
-    
+
     # We will interpolate onto a grid with 1.0m spacing
     # This should yield x from 0 to 9, y from 0 to 1
     # Note: no CRS transform
@@ -58,13 +61,13 @@ def test_assemble_irregular_grid():
         grid_spacing_m=1.0,
         method="linear",
         crs_from=None,
-        crs_to=None
+        crs_to=None,
     )
-    
+
     # x points: 0, 1, ..., 8 (9 points)
     # y points: 0 (1 point)
     assert grid.data.shape == (9, 1, 50)
-    
+
     # Values at y=0 should be 1.0
     assert np.allclose(grid.data[:, 0, :], 1.0)
 

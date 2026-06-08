@@ -6,11 +6,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import numpy as np
-from dig.models.audit import AuditTrail, ProcessingStep
-from dig.models.survey import Survey
-from dig.models.profile import Profile
+
+from dig.models.audit import AuditTrail
 from dig.models.grid import Grid3D
 from dig.models.magnetometry_grid import MagnetometryGrid
+from dig.models.profile import Profile
+from dig.models.survey import Survey
 
 
 class TestAuditTrail:

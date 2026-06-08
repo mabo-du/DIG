@@ -1,25 +1,21 @@
-import pytest
 import numpy as np
+import pytest
 
-from dig.processing.migration import stolt_migration
-from dig.processing.assembly import assemble_regular_grid
-from dig.processing.detection import blob_detection
-from dig.processing.pipeline import ProcessingPipeline
-from dig.processing.dewow import dewow_median
-from dig.processing.gain import agc
 from dig.models.profile import Profile
 from dig.models.survey import Survey
+from dig.processing.assembly import assemble_regular_grid
+from dig.processing.detection import blob_detection
+from dig.processing.dewow import dewow_median
+from dig.processing.gain import agc
+from dig.processing.migration import stolt_migration
+from dig.processing.pipeline import ProcessingPipeline
 
 
 @pytest.fixture
 def dummy_profile():
     data = np.random.randn(1000, 1024).astype(np.float32)
-    return Profile(
-        name="test_1000",
-        data=data,
-        sample_interval_ns=0.1,
-        trace_spacing_m=0.05
-    )
+    return Profile(name="test_1000", data=data, sample_interval_ns=0.1, trace_spacing_m=0.05)
+
 
 @pytest.fixture
 def dummy_profiles():
@@ -28,10 +24,11 @@ def dummy_profiles():
             name=f"test_{i}",
             data=np.random.randn(1000, 1024).astype(np.float32),
             sample_interval_ns=0.1,
-            trace_spacing_m=0.05
+            trace_spacing_m=0.05,
         )
         for i in range(10)
     ]
+
 
 @pytest.fixture
 def dummy_survey(dummy_profiles):
@@ -60,7 +57,9 @@ def test_bench_e2e_pipeline(benchmark, dummy_profile):
         pipe = ProcessingPipeline(dummy_profile.data)
         pipe = pipe.process(dewow_median, window_size=51)
         pipe = pipe.process(agc, window_samples=51)
-        pipe = pipe.process(stolt_migration, velocity_m_ns=0.1, sample_interval_ns=0.1, trace_spacing_m=0.05)
+        pipe = pipe.process(
+            stolt_migration, velocity_m_ns=0.1, sample_interval_ns=0.1, trace_spacing_m=0.05
+        )
         return pipe
-        
+
     benchmark(run_pipeline)

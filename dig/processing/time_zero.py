@@ -20,7 +20,7 @@ def find_time_zero_mer(trace: np.ndarray) -> int:
     Reference: Coppens (1985) — MER = (A²(t) * A'(t)) / A_base
     """
     trace = np.asarray(trace, dtype=np.float64)
-    energy = trace ** 2
+    energy = trace**2
     # First derivative approximation
     derivative = np.diff(energy, prepend=energy[0])
     # MER: energy * derivative, smoothed
@@ -44,9 +44,7 @@ def find_time_zero_threshold(trace: np.ndarray, threshold: float = 3.0) -> int:
     return int(crossings[0]) if len(crossings) > 0 else 0
 
 
-def correct_time_zero(
-    data: np.ndarray, time_zero_samples: int | np.ndarray
-) -> np.ndarray:
+def correct_time_zero(data: np.ndarray, time_zero_samples: int | np.ndarray) -> np.ndarray:
     """Shift traces to align time-zero.
 
     Args:

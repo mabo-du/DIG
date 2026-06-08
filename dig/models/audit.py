@@ -5,10 +5,10 @@ is never modified. This provides infinite undo, full reproducibility,
 and a verifiable processing chain.
 """
 
+import json
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional
-import json
 
 
 @dataclass

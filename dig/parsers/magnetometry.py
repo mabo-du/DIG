@@ -1,9 +1,10 @@
 """Bartington/Geoscan magnetometry format parser (Python wrapper)."""
 
 from pathlib import Path
-from typing import Optional
+
 import numpy as np
-from dig.core import parse_magnetometry, PySurvey
+
+from dig.core import PySurvey, parse_magnetometry
 
 # Void/sentinel value for missing data (matches Rust VOID_I16)
 VOID_VALUE = -32768
@@ -37,14 +38,10 @@ class MagnetometryFile:
 
         self.grd_path = Path(grd_path) if grd_path else None
         if not self.grd_path or not self.grd_path.exists():
-            raise FileNotFoundError(
-                f"GRD file not found for {dat_path}"
-            )
+            raise FileNotFoundError(f"GRD file not found for {dat_path}")
 
         # Parse via Rust backend
-        self._survey: PySurvey = parse_magnetometry(
-            str(self.dat_path), str(self.grd_path)
-        )
+        self._survey: PySurvey = parse_magnetometry(str(self.dat_path), str(self.grd_path))
 
         # Build numpy grid from trace_data
         self._build_grid()
@@ -61,9 +58,7 @@ class MagnetometryFile:
         expected = rows * cols * 2  # int16
 
         if len(raw) >= expected:
-            self._data = np.frombuffer(
-                raw[:expected], dtype=np.int16
-            ).reshape(rows, cols)
+            self._data = np.frombuffer(raw[:expected], dtype=np.int16).reshape(rows, cols)
         else:
             self._data = np.zeros((rows, cols), dtype=np.int16)
 
@@ -143,7 +138,4 @@ class MagnetometryFile:
         return self._data == VOID_VALUE
 
     def __repr__(self) -> str:
-        return (
-            f"MagnetometryFile(shape=({self.rows}, {self.cols}), "
-            f"cell_size={self.cell_size})"
-        )
+        return f"MagnetometryFile(shape=({self.rows}, {self.cols}), cell_size={self.cell_size})"

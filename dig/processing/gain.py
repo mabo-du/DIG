@@ -31,7 +31,7 @@ def sec_gain(data: np.ndarray, sample_rate: float, alpha: float = 0.5) -> np.nda
 
     # SEC gain function
     gain = t * np.exp(alpha * t)
-    
+
     return data * gain[np.newaxis, :]
 
 
@@ -54,14 +54,16 @@ def agc(data: np.ndarray, window_samples: int = 50) -> np.ndarray:
     from scipy.ndimage import uniform_filter1d
 
     # RMS in sliding window
-    squared = data ** 2
+    squared = data**2
     mean_sq = uniform_filter1d(squared, size=window_samples, axis=1, mode="reflect")
     rms = np.sqrt(np.maximum(mean_sq, 1e-12))
 
     return data / rms
 
 
-def linear_gain(data: np.ndarray, gain_db_per_us: float = 10.0, sample_rate: float = 1e9) -> np.ndarray:
+def linear_gain(
+    data: np.ndarray, gain_db_per_us: float = 10.0, sample_rate: float = 1e9
+) -> np.ndarray:
     """Apply linear time-power gain.
 
     Args:

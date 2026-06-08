@@ -1,6 +1,7 @@
 """2D GPR profile model — a single radargram line."""
 
 from dataclasses import dataclass
+
 import numpy as np
 
 

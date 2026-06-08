@@ -1,9 +1,8 @@
 """Tests for DIG parsers."""
 
-import sys
 import os
-import math
 import struct
+import sys
 import tempfile
 from pathlib import Path
 
@@ -11,8 +10,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import numpy as np
-from dig.parsers.dzt import DZTFile
+
 from dig.parsers.dt1 import DT1File
+from dig.parsers.dzt import DZTFile
 from dig.parsers.magnetometry import MagnetometryFile
 from dig.parsers.segy import SEGYFile
 
@@ -30,15 +30,15 @@ def _make_synthetic_dzt(
 ) -> bytes:
     """Build a synthetic DZT file with recognizable trace data."""
     header = bytearray(1024)
-    header[0:2] = (1).to_bytes(2, 'little')           # rh_tag
-    header[2:4] = rh_data.to_bytes(2, 'little', signed=True)  # rh_data
-    header[4:6] = nsamp.to_bytes(2, 'little', signed=True)    # rh_nsamp
-    header[6:8] = bits.to_bytes(2, 'little', signed=True)     # rh_bits
-    header[10:14] = struct.pack('<f', rhf_sps)        # rhf_sps
-    header[14:18] = struct.pack('<f', rhf_spm)        # rhf_spm
-    header[22:26] = struct.pack('<f', rhf_position)   # rhf_position
-    header[26:30] = struct.pack('<f', rhf_range)      # rhf_range
-    header[52:54] = nchan.to_bytes(2, 'little', signed=True)  # rh_nchan
+    header[0:2] = (1).to_bytes(2, "little")  # rh_tag
+    header[2:4] = rh_data.to_bytes(2, "little", signed=True)  # rh_data
+    header[4:6] = nsamp.to_bytes(2, "little", signed=True)  # rh_nsamp
+    header[6:8] = bits.to_bytes(2, "little", signed=True)  # rh_bits
+    header[10:14] = struct.pack("<f", rhf_sps)  # rhf_sps
+    header[14:18] = struct.pack("<f", rhf_spm)  # rhf_spm
+    header[22:26] = struct.pack("<f", rhf_position)  # rhf_position
+    header[26:30] = struct.pack("<f", rhf_range)  # rhf_range
+    header[52:54] = nchan.to_bytes(2, "little", signed=True)  # rh_nchan
 
     bytes_per_sample = bits // 8
     trace_record_bytes = nsamp * bytes_per_sample * nchan
@@ -52,12 +52,10 @@ def _make_synthetic_dzt(
                 trace_data[sample_offset] = (t + s) & 0xFF
             elif bits == 16:
                 val = (t * 100 + s) & 0xFFFF
-                trace_data[sample_offset:sample_offset + 2] = \
-                    val.to_bytes(2, 'little')
+                trace_data[sample_offset : sample_offset + 2] = val.to_bytes(2, "little")
             elif bits == 32:
                 val = (t * 1000 + s) & 0xFFFFFFFF
-                trace_data[sample_offset:sample_offset + 4] = \
-                    val.to_bytes(4, 'little')
+                trace_data[sample_offset : sample_offset + 4] = val.to_bytes(4, "little")
 
     return bytes(header) + bytes(trace_data)
 
@@ -65,6 +63,7 @@ def _make_synthetic_dzt(
 class TestDZTParser:
     def test_dzt_raises_on_missing_file(self):
         import pytest
+
         with pytest.raises(FileNotFoundError):
             DZTFile("/nonexistent/file.dzt")
 
@@ -84,8 +83,14 @@ class TestDZTParser:
 
     def test_dzt_header_metadata(self):
         data = _make_synthetic_dzt(
-            nsamp=256, bits=16, nchan=1, num_traces=50,
-            rhf_range=80.0, rhf_sps=60.0, rhf_spm=5.0, rhf_position=1.5,
+            nsamp=256,
+            bits=16,
+            nchan=1,
+            num_traces=50,
+            rhf_range=80.0,
+            rhf_sps=60.0,
+            rhf_spm=5.0,
+            rhf_position=1.5,
         )
         with tempfile.NamedTemporaryFile(suffix=".dzt", delete=False) as f:
             f.write(data)
@@ -142,6 +147,7 @@ class TestDZTParser:
             assert trace[15] == 715  # 7 * 100 + 15
 
             import pytest
+
             with pytest.raises(IndexError):
                 dzt.get_trace(999)
         finally:
@@ -251,23 +257,23 @@ def _make_synthetic_dt1(
     for t in range(num_traces):
         offset = t * trace_total
         # Trace header
-        buf[offset:offset + 4] = (t + 1).to_bytes(4, 'little')  # trace_number
-        buf[offset + 8:offset + 12] = struct.pack('<f', t * 2.0)  # position
-        buf[offset + 16:offset + 20] = struct.pack('<f', 1.0)  # time_zero
-        buf[offset + 20:offset + 24] = struct.pack('<f', t * 5.0)  # elevation
+        buf[offset : offset + 4] = (t + 1).to_bytes(4, "little")  # trace_number
+        buf[offset + 8 : offset + 12] = struct.pack("<f", t * 2.0)  # position
+        buf[offset + 16 : offset + 20] = struct.pack("<f", 1.0)  # time_zero
+        buf[offset + 20 : offset + 24] = struct.pack("<f", t * 5.0)  # elevation
 
         # Trace data with recognizable pattern
         data_start = offset + 128
         for s in range(samples):
             sample_offset = data_start + s * bytes_per_sample
             if bits == 16:
-                val = ((t * 100 + s) & 0xFFFF)
-                buf[sample_offset:sample_offset + 2] = val.to_bytes(2, 'little')
+                val = (t * 100 + s) & 0xFFFF
+                buf[sample_offset : sample_offset + 2] = val.to_bytes(2, "little")
             elif bits == 8:
                 buf[sample_offset] = (t + s) & 0xFF
             elif bits == 32:
-                val = ((t * 1000 + s) & 0xFFFFFFFF)
-                buf[sample_offset:sample_offset + 4] = val.to_bytes(4, 'little')
+                val = (t * 1000 + s) & 0xFFFFFFFF
+                buf[sample_offset : sample_offset + 4] = val.to_bytes(4, "little")
 
     hd = f"NUMBEROFPTS = {samples}\n"
     if bits != 16:
@@ -280,6 +286,7 @@ def _make_synthetic_dt1(
 class TestDT1Parser:
     def test_dt1_raises_on_missing_file(self):
         import pytest
+
         with pytest.raises(FileNotFoundError):
             DT1File("/nonexistent/file.dt1")
 
@@ -298,7 +305,8 @@ class TestDT1Parser:
 
     def test_dt1_header_metadata(self):
         data, hd = _make_synthetic_dt1(
-            num_traces=20, samples=256,
+            num_traces=20,
+            samples=256,
             hd_extra="TIMEWINDOW = 80\nPULLDELAY = 1.5\nNUMBEROFCHANNELS = 1\n",
         )
         with tempfile.TemporaryDirectory() as tmp:
@@ -351,6 +359,7 @@ class TestDT1Parser:
             assert trace[0] == 700  # 7 * 100 + 0
 
             import pytest
+
             with pytest.raises(IndexError):
                 dt1.get_trace(999)
 
@@ -410,7 +419,8 @@ class TestDT1Parser:
 
     def test_dt1_hd_metadata_dict(self):
         data, hd = _make_synthetic_dt1(
-            num_traces=3, samples=64,
+            num_traces=3,
+            samples=64,
             hd_extra="SURVEYNAME = Test Area\nSTACKING = 4\n",
         )
         with tempfile.TemporaryDirectory() as tmp:
@@ -470,11 +480,13 @@ class TestDT1Parser:
 class TestMagnetometryParser:
     def test_magnetometry_raises_on_missing_dat(self):
         import pytest
+
         with pytest.raises(FileNotFoundError):
             MagnetometryFile("/nonexistent/file.dat")
 
     def test_magnetometry_raises_on_missing_grd(self):
         import pytest
+
         with tempfile.TemporaryDirectory() as tmp:
             dat_path = Path(tmp) / "test.dat"
             dat_path.write_bytes(b"\x00\x00")
@@ -499,9 +511,9 @@ class TestMagnetometryParser:
 
             # Check zig-zag reversal
             data = mag.data
-            assert data[0, 0] == 0   # row 0 unchanged
-            assert data[1, 0] == 5   # row 1 reversed (4,5,3 → 5,4,3)
-            assert data[2, 0] == 6   # row 2 unchanged
+            assert data[0, 0] == 0  # row 0 unchanged
+            assert data[1, 0] == 5  # row 1 reversed (4,5,3 → 5,4,3)
+            assert data[2, 0] == 6  # row 2 unchanged
             assert data[3, 0] == 11  # row 3 reversed (10,11,9 → 11,10,9)
 
     def test_magnetometry_no_zigzag(self):
@@ -516,9 +528,9 @@ class TestMagnetometryParser:
 
             mag = MagnetometryFile(str(dat_path), str(grd_path))
             data = mag.data
-            assert data[0, 0] == 0   # unchanged
-            assert data[1, 0] == 4   # unchanged (no zigzag)
-            assert data[2, 0] == 8   # unchanged
+            assert data[0, 0] == 0  # unchanged
+            assert data[1, 0] == 4  # unchanged (no zigzag)
+            assert data[2, 0] == 8  # unchanged
 
     def test_magnetometry_repr(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -591,6 +603,7 @@ class TestMagnetometryParser:
 class TestSEGYParser:
     def test_segy_raises_on_missing_file(self):
         import pytest
+
         with pytest.raises(FileNotFoundError):
             SEGYFile("/nonexistent/file.sgy")
 

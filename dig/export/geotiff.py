@@ -7,12 +7,12 @@ rules:
 """
 
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any, Optional
+
 import numpy as np
 import rasterio
-from rasterio.transform import Affine
 from rasterio.crs import CRS
-import pyproj
+from rasterio.transform import Affine
 
 
 def _build_affine(
@@ -51,12 +51,12 @@ def _build_affine(
     origin_northing += half_px * sin_a + half_px * cos_a
 
     return Affine(
-        pixel_size * cos_a,   # a: pixel width in geographic x
+        pixel_size * cos_a,  # a: pixel width in geographic x
         -pixel_size * sin_a,  # b: row rotation (x-skew)
-        origin_easting,       # c: x-coordinate of origin
+        origin_easting,  # c: x-coordinate of origin
         -pixel_size * sin_a,  # d: column rotation (y-skew)
         -pixel_size * cos_a,  # e: pixel height (negative = north-up)
-        origin_northing,      # f: y-coordinate of origin
+        origin_northing,  # f: y-coordinate of origin
     )
 
 
@@ -99,9 +99,12 @@ def export_geotiff(
 
     # Build affine transform
     transform = _build_affine(
-        origin_easting, origin_northing,
-        pixel_size, rotation_deg,
-        n_cols, n_rows,
+        origin_easting,
+        origin_northing,
+        pixel_size,
+        rotation_deg,
+        n_cols,
+        n_rows,
     )
 
     # CRS

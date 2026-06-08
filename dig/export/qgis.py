@@ -10,6 +10,7 @@ rules:
 
 import math
 from pathlib import Path
+
 import numpy as np
 import rasterio
 
@@ -22,7 +23,7 @@ def generate_qgz(
 ) -> str:
     """Generate a QGIS project file (.qgs XML).
 
-    Configures a complete QGIS 3.x project with layer symbology, global extent, 
+    Configures a complete QGIS 3.x project with layer symbology, global extent,
     and proper project tree structuring.
 
     Args:
@@ -35,19 +36,19 @@ def generate_qgz(
         Path to the written .qgs file
     """
     output_path = Path(output_path)
-    
-    xmin, ymin, xmax, ymax = float('inf'), float('inf'), float('-inf'), float('-inf')
-    
+
+    xmin, ymin, xmax, ymax = float("inf"), float("inf"), float("-inf"), float("-inf")
+
     projectlayers_xml = ""
     layertree_xml = ""
-    
+
     for i, rpath_str in enumerate(raster_paths):
         rpath = Path(rpath_str)
         layer_id = f"dig_layer_{i}"
         layer_name = rpath.stem
-        
+
         vmin, vmax = 0.0, 255.0
-        
+
         try:
             with rasterio.open(rpath) as src:
                 bounds = src.bounds
@@ -55,10 +56,10 @@ def generate_qgz(
                 ymin = min(ymin, bounds.bottom)
                 xmax = max(xmax, bounds.right)
                 ymax = max(ymax, bounds.top)
-                
+
                 band = src.read(1)
                 nodata = src.nodata
-                
+
                 if nodata is not None:
                     if np.issubdtype(band.dtype, np.floating) and np.isnan(nodata):
                         valid = band[~np.isnan(band)]
@@ -69,13 +70,13 @@ def generate_qgz(
                         valid = band[~np.isnan(band)]
                     else:
                         valid = band
-                
+
                 if valid.size > 0:
                     vmin = float(np.percentile(valid, 2))
                     vmax = float(np.percentile(valid, 98))
         except Exception:
             pass
-            
+
         projectlayers_xml += f"""
     <maplayer type="raster" hasScaleBasedVisibilityFlag="0" maxScale="0" minScale="1e+08" autoRefreshTime="0" autoRefreshEnabled="0" refreshOnNotifyEnabled="0" refreshOnNotifyMessage="">
       <id>{layer_id}</id>
@@ -107,7 +108,7 @@ def generate_qgz(
                 <prop k="rampType" v="gradient"/>
               </colorramp>
               <item alpha="255" value="{vmin}" label="{vmin:.1f}" color="#2b83ba"/>
-              <item alpha="255" value="{(vmin+vmax)/2}" label="{(vmin+vmax)/2:.1f}" color="#ffffbf"/>
+              <item alpha="255" value="{(vmin + vmax) / 2}" label="{(vmin + vmax) / 2:.1f}" color="#ffffbf"/>
               <item alpha="255" value="{vmax}" label="{vmax:.1f}" color="#d7191c"/>
             </colorrampshader>
           </rastershader>

@@ -6,17 +6,18 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import numpy as np
-from dig.processing.time_zero import (
-    find_time_zero_mer,
-    find_time_zero_threshold,
-    correct_time_zero,
-)
-from dig.processing.dewow import dewow_fft, dewow_median
+
 from dig.processing.background import remove_background_global, remove_background_local
 from dig.processing.bandpass import bandpass_butterworth
-from dig.processing.gain import sec_gain, agc, linear_gain
+from dig.processing.dewow import dewow_fft, dewow_median
+from dig.processing.gain import agc, linear_gain, sec_gain
+from dig.processing.magnetometry import despike, destagger, destripe
+from dig.processing.time_zero import (
+    correct_time_zero,
+    find_time_zero_mer,
+    find_time_zero_threshold,
+)
 from dig.processing.topography import correct_topography_shift
-from dig.processing.magnetometry import destagger, despike, destripe
 
 
 class TestTimeZero:
@@ -102,7 +103,9 @@ class TestTopography:
     def test_correct_topography_shift(self):
         data = np.ones((10, 100))
         elevations = np.linspace(0, 5, 10)
-        result = correct_topography_shift(data, elevations, velocity_m_ns=0.1, sample_interval_ns=0.1)
+        result = correct_topography_shift(
+            data, elevations, velocity_m_ns=0.1, sample_interval_ns=0.1
+        )
         assert result.shape == data.shape
 
 

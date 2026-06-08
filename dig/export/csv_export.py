@@ -1,6 +1,7 @@
 """CSV export for GIS and spreadsheet import."""
 
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -41,7 +42,9 @@ def export_csv(
                 if y_coords is not None:
                     row["y"] = y_coords[i] if i < len(y_coords) else i
                 for b in range(n_bands):
-                    label = depth_labels[b] if depth_labels and b < len(depth_labels) else f"band_{b}"
+                    label = (
+                        depth_labels[b] if depth_labels and b < len(depth_labels) else f"band_{b}"
+                    )
                     row[label] = data[b, i, j]
                 rows_list.append(row)
         df = pd.DataFrame(rows_list)

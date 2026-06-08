@@ -1,7 +1,7 @@
 """Magnetometry-specific processing (destaggering, despiking, destriping)."""
 
 import numpy as np
-from scipy import ndimage, signal
+from scipy import fft, ndimage
 
 
 def destagger(data: np.ndarray, shift: int = 1) -> np.ndarray:
@@ -69,7 +69,6 @@ def destripe(data: np.ndarray, method: str = "median") -> np.ndarray:
     elif method == "fft":
         # Notch filter in frequency domain along rows
         spec = fft.fft(data, axis=0)
-        n_rows = data.shape[0]
         # Zero out DC and low frequencies (striping is typically row-frequency)
         spec[0] = 0
         spec[1] *= 0.5

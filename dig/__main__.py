@@ -6,15 +6,16 @@ Must safely use `sys._MEIPASS` when frozen.
 Must add a first-run config `~/.dig/` creation step.
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
+
 
 def main() -> int:
     """Launch the DIG application."""
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         # If the application is run as a bundle, the PyInstaller bootloader
-        # extends the sys module by a flag frozen=True and sets the app 
+        # extends the sys module by a flag frozen=True and sets the app
         # path into variable _MEIPASS.
         application_path = sys._MEIPASS
     else:
@@ -33,8 +34,9 @@ def main() -> int:
     # We will just print the path for now so it successfully runs.
     print(f"DIG Application initialized from {application_path}")
     print(f"User configuration directory: {config_dir}")
-    
+
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

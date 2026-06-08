@@ -7,9 +7,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import numpy as np
-from dig.export.geotiff import export_geotiff, _build_affine
+
 from dig.export.csv_export import export_csv
-from dig.export.geojson import export_geojson, anomaly_to_feature
+from dig.export.geojson import anomaly_to_feature, export_geojson
+from dig.export.geotiff import _build_affine, export_geotiff
 
 
 class TestGeoTIFF:
@@ -23,7 +24,9 @@ class TestGeoTIFF:
             n_rows=100,
         )
         assert abs(transform.a - 1.0) < 0.01  # pixel width
-        assert abs(transform.e - (-1.0)) < 0.01  # pixel height (rasterio convention: north-up is negative)
+        assert (
+            abs(transform.e - (-1.0)) < 0.01
+        )  # pixel height (rasterio convention: north-up is negative)
 
     def test_build_affine_rotation(self):
         transform = _build_affine(
@@ -56,7 +59,9 @@ class TestGeoTIFF:
 
         try:
             result = export_geotiff(
-                data, path, crs_epsg=32630,
+                data,
+                path,
+                crs_epsg=32630,
                 band_descriptions=["Depth 0.5m", "Depth 1.0m", "Depth 1.5m"],
             )
             assert Path(result).exists()
