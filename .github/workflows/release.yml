@@ -22,7 +22,7 @@ jobs:
       - name: Build and Publish Wheels
         env:
           MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        run: maturin publish --manifest-path dig-core/Cargo.toml -m pypi
+        run: maturin publish --manifest-path dig-core/Cargo.toml
 
   build-executables:
     name: Build Standalone Executables
@@ -79,7 +79,8 @@ jobs:
           exec "${HERE}/usr/bin/dig" "$@"
           APP
           chmod +x AppDir/AppRun
-          ./appimagetool AppDir DIG-Linux-x86_64.AppImage
+          ./appimagetool --appimage-extract
+          ./squashfs-root/AppRun AppDir DIG-Linux-x86_64.AppImage
 
       - name: Package Windows InnoSetup
         if: matrix.target == 'windows'
