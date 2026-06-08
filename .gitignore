@@ -15,29 +15,55 @@ dig-core/target/
 *.pyd
 *.dylib
 
-# IDE
+# IDE & OS
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# OS
 .DS_Store
 Thumbs.db
 
-# Test data (large files)
-test_data/*.dzt
-test_data/*.dt1
-test_data/*.dat
-test_data/*.grd
-test_data/*.sgy
+# Test data & outputs
+test_data/
+test_out/
+*.dzt
+*.dt1
+*.dat
+*.grd
+*.sgy
+*.qgs
 
-# Environment
+# Scratch files & local tests
+synthetic_e2e.py
+test_numpy.rs
+test_pyvista.py
+test_qgis_gen.py
+test_stolt.py
+test_stolt_vec.py
+test_update_qgis.py
+
+# Documentation Builds
+site/
+
+# Environment & Coverage
 .env
 .env.local
-
-# Coverage
 htmlcov/
 .coverage
 coverage/
-.gitnexus
+
+# Agent & AI Settings
+.agents/
+.aidevops.json
+.beads/
+.claude/
+.ctx/
+.windsurf/
+.gitnexus/
+AGENTS.md
+CLAUDE.md
+IMPLEMENTATION_PLAN.md
+TODO.md
+todo/
+seeds/
+schemas/

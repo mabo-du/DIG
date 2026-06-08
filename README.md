@@ -1,25 +1,45 @@
 # DIG — Digital Imaging for Geophysics
 
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/mark/DIG)](https://github.com/mark/DIG/releases)
+[![PyPI version](https://badge.fury.io/py/dig.svg)](https://badge.fury.io/py/dig)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 An open-source suite for processing, analyzing, and visualizing Ground Penetrating Radar (GPR) and Magnetometry data for archaeological prospection.
 
-## Quick Start
+DIG bridges the gap between high-performance geophysical processing and user-friendly archaeological interpretation, utilizing a **Rust-based DSP backend** and a rich **PySide6 / PyVista 3D visualization frontend**.
 
+## 📖 Documentation
+
+The full documentation—including the User Guide, API Reference, and Integration Guides—is available at: **[DIG Documentation](https://mark.github.io/DIG)**
+
+## 🚀 Quick Start
+
+### Installation
+
+For most users, simply install DIG via PyPI:
 ```bash
-# Install
 pip install dig
+```
 
-# Process a GSSI .DZT file
+*Alternatively, you can download pre-compiled standalone executables (Windows `.exe`, macOS `.dmg`, Linux `AppImage`) from our [Releases page](https://github.com/mark/DIG/releases).*
+
+### Python API Example
+
+```python
 from dig.parsers import DZTFile
 from dig.processing import dewow, background, gain
 
+# Load a GSSI DZT file using the zero-copy Rust parser
 dzt = DZTFile("survey.dzt")
 data = dzt.traces
+
+# Apply a standard pipeline
 data = dewow.dewow_fft(data, sample_rate=1e9)
 data = background.remove_background_global(data)
 data = gain.sec_gain(data, sample_rate=1e9)
 ```
 
-## Architecture
+## 🏗️ Architecture
 
 ```
 dig/              # Python package (GUI, orchestration, export)
@@ -36,37 +56,19 @@ dig-core/         # Rust crate (performance-critical code)
 └── io/           # Memory-mapped file I/O
 ```
 
-## Supported Formats
+## 📊 Supported Formats
 
 | Format | Instrument | Status |
 |--------|-----------|--------|
-| .DZT | GSSI SIR-3000/4000 | ✅ Phase 1 |
-| .DT1/.HD | Sensors & Software Pulse EKKO | ✅ Phase 1 |
-| .dat/.grd | Bartington Grad601 / Geoscan FM256 | ✅ Phase 1 |
-| .sgy | SEG-Y (interoperability) | ✅ Phase 1 |
+| `.DZT` | GSSI SIR-3000/4000 | ✅ Supported |
+| `.DT1`/`.HD` | Sensors & Software Pulse EKKO | ✅ Supported |
+| `.dat`/`.grd` | Bartington Grad601 / Geoscan FM256 | ✅ Supported |
+| `.sgy` | SEG-Y (interoperability) | ✅ Supported |
 
-## Processing Pipeline
+## 🛠️ Contributing
 
-- Time-zero correction (MER, threshold, manual)
-- De-wow (FFT high-pass, running median)
-- Background removal (global, localized)
-- Bandpass filtering (Butterworth, zero-phase)
-- Gain (SEC, AGC, linear)
-- Topographic correction
-- Stolt/Kirchhoff migration
-- Magnetometry: destagger, despike, destripe, interpolation
+We welcome contributions from archaeologists, geophysicists, and software engineers! See our [CONTRIBUTING.md](CONTRIBUTING.md) for instructions on setting up the Rust and Python development environments.
 
-## Export
+## 📄 License
 
-- GeoTIFF (multi-band, rotated, proper CRS)
-- Cloud-Optimized GeoTIFF (COG)
-- CSV, GeoJSON, GeoPackage
-- QGIS project file (.qgs)
-
-## License
-
-MIT
-
-## Ecosystem
-
-DIG is part of a broader open-source digital heritage ecosystem. See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for integration points with LiDAR-Relief, StratiGraph, Paleo, Fritts, HOARD, and the Tollense Rosetta Stone Initiative.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
