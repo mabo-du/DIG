@@ -1,3 +1,4 @@
+import concurrent.futures
 import json
 from unittest.mock import MagicMock, patch
 
@@ -44,6 +45,7 @@ def test_resolve_function():
         resolve_function("non_existent_function")
 
 
+@patch("concurrent.futures.ProcessPoolExecutor", concurrent.futures.ThreadPoolExecutor)
 @patch("dig.processing.batch.DZTFile")
 def test_batch_pipeline_execution(mock_dzt, tmp_path):
     # Setup mock parser
@@ -71,6 +73,7 @@ def test_batch_pipeline_execution(mock_dzt, tmp_path):
     assert res["final_shape"] == [100, 50]
 
 
+@patch("concurrent.futures.ProcessPoolExecutor", concurrent.futures.ThreadPoolExecutor)
 @patch("dig.processing.batch.DZTFile")
 def test_batch_parallel_execution(mock_dzt, tmp_path):
     mock_instance = MagicMock()
