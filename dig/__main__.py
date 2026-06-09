@@ -30,12 +30,18 @@ def main() -> int:
         if not config_file.exists():
             config_file.write_text("# DIG User Configuration\n")
 
-    # In a real scenario we'd launch the PyQt/PySide app here.
-    # We will just print the path for now so it successfully runs.
+    # Launch the PyQt/PySide app
+    from PySide6.QtWidgets import QApplication
+    from dig.viz.main_window import MainWindow
+
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+
     print(f"DIG Application initialized from {application_path}")
     print(f"User configuration directory: {config_dir}")
 
-    return 0
+    return app.exec()
 
 
 if __name__ == "__main__":
