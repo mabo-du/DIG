@@ -1,75 +1,97 @@
-# DIG User Guide & Manual
+# DIG (Digital Imaging for Geophysics) - User Guide
 
-Welcome to **DIG (Digital Imaging for Geophysics)**. This application provides field archaeologists and geophysicists with a high-performance environment for importing, processing, and analyzing Ground Penetrating Radar (GPR) and Magnetometry data.
+Welcome to **DIG**, an open-source, high-performance desktop application for processing, visualizing, and exporting Ground Penetrating Radar (GPR) and Magnetometry survey data.
 
----
-
-## 1. Installation & Setup
-
-### Pre-compiled Standalone Binaries
-The easiest way to use DIG is to download the standalone executable for your operating system from the [GitHub Releases](https://github.com/mabo-du/DIG/releases) page.
-
-- **Windows:** Download the `DIG-Windows-Setup.exe` installer. Double-click and follow the wizard.
-- **macOS:** Download the `DIG-macOS.dmg` file. Mount it and drag DIG to your Applications folder. *Note on Gatekeeper: If macOS warns that the app is unsigned, right-click the DIG icon and click "Open" to bypass the warning.*
-- **Linux:** Download the `DIG-Linux-x86_64.AppImage`. Run `chmod +x DIG-Linux-x86_64.AppImage` to make it executable, then double-click it. *Note: You may need `libxcb-cursor0` installed (`sudo apt-get install libxcb-cursor0`).*
-
-### Python Package (for Developers/Scripters)
-If you prefer to use DIG as a Python library:
-```bash
-pip install dig
-```
+Unlike traditional geophysical software that forces destructive changes onto your raw data, DIG uses a non-destructive, DAG-based (Directed Acyclic Graph) pipeline. Your original data is never modified, and you can instantly step back through your processing history, branch off to try different filters, or compare the results of different gain algorithms side-by-side.
 
 ---
 
-## 2. Importing Data
+## 1. Getting Started
 
-DIG provides zero-copy, memory-mapped parsers for several proprietary binary formats:
-- **GSSI GPR (`.DZT`)**: Contains trace data and internal headers. DIG will also automatically look for and parse `.DZG` sidecar files containing NMEA GPS strings.
-- **Sensors & Software PulseEKKO (`.DT1` & `.HD`)**: Requires both files in the same directory. DIG will extract the survey geometry and trace data simultaneously.
-- **Bartington / Geoscan Magnetometry (`.dat` & `.grd`)**: Imports zigzag and parallel grid formats, properly masking void values (-32768) as NaNs for processing.
-- **SEG-Y (`.sgy`)**: The industry standard for seismic and georadar interoperability.
+### 1.1 Launching the Application
+Once installed via the standalone executables (or via `python -m dig`), the main window will appear. The interface is composed of multiple dockable panels surrounding a central visualization area.
+- **Center:** The Radargram (2D) or Volume (3D) viewer.
+- **Left Panel:** History and Processing Pipeline.
+- **Right Panel:** Display Controls and Filter Parameters.
+- **Bottom Panel:** Depth/Time Slice Navigator (active in 3D mode).
 
-**To Import:**
-1. Open the DIG interface.
-2. Click **File -> Import Survey**.
-3. Select your raw data files. DIG will automatically detect the instrument type and display the raw radargram (for GPR) or grid (for Magnetometry).
-
----
-
-## 3. Signal Processing Pipeline
-
-DIG utilizes an immutable, DAG-based (Directed Acyclic Graph) processing pipeline. This means you can apply a chain of filters, and DIG will preserve your original data. You can "branch" off of any step in history to try a different filter.
-
-### GPR Processing Workflow
-A typical Ground Penetrating Radar processing sequence includes:
-
-1. **Time-Zero Correction:** Aligns all traces so the surface reflection occurs at $t = 0$. Use the Threshold method or First-Peak method.
-2. **De-Wow Filter:** Removes low-frequency induction drift. DIG uses a Fast-Fourier Transform (FFT) high-pass filter for this, which is significantly faster than traditional running means.
-3. **Background Removal:** Removes horizontal banding (ringing) caused by antenna crosstalk. Choose between a Global average subtraction or a Localized moving average.
-4. **Bandpass Filter:** Eliminates high-frequency noise and low-frequency drift. Configure your low-cut and high-cut frequencies based on your antenna's center frequency.
-5. **Gain:** Corrects for the exponential decay of the radar signal through the ground.
-   - *SEC (Spherical and Exponential Compensation)*: Mathematically reconstructs the lost amplitude.
-   - *AGC (Automatic Gain Control)*: Equalizes the visual appearance of deep and shallow reflectors (useful for display, but destroys relative amplitude).
-6. **Migration (Stolt or Kirchhoff):** Collapses hyperbolic diffraction hyperbolas back to their true point sources. This requires estimating the subsurface radar wave velocity first!
-
-### Magnetometry Processing Workflow
-1. **Despike:** Removes sudden, sharp spikes caused by modern ferrous trash (like nails or wire).
-2. **Destagger:** Corrects for zigzag walking errors where alternating profiles are shifted due to the operator's swing.
-3. **Zero Mean Traverse (Destripe):** Removes directional heading errors and sensor drift by balancing the mean of each traverse.
+### 1.2 Importing Raw Data
+To load a survey:
+1. Go to **File -> Open Profile** (or press `Ctrl+O`).
+2. Select your raw binary file:
+   - **GSSI (`.DZT`)**: Contains trace data. DIG automatically seeks `.DZG` sidecars for GPS coordinates.
+   - **Sensors & Software (`.DT1`)**: Standard PulseEKKO format. DIG also requires the `.HD` header file to be in the same folder.
+3. Once loaded, the 2D Radargram view will populate immediately.
 
 ---
 
-## 4. 2D and 3D Visualization
+## 2. Navigating the Interface
 
-- **2D Profile View (PyQtGraph):** Displays individual GPR radargrams. Use your mouse scroll wheel to adjust color contrast (gain) visually without permanently altering the data.
-- **3D Volume Assembly (PyVista):** If your profiles were collected on a grid or have GPS coordinates, click **Assemble 3D Grid**. DIG will interpolate the data into a 3D block.
-- **Slice Navigator:** Once a 3D volume is assembled, use the Z-axis slider to scroll through time/depth slices. High-amplitude anomalies (often walls, floors, or ditches) will appear as bright reflections.
+### 2.1 The Radargram Viewer (2D)
+The central 2D viewer plots distance (or trace number) along the X-axis and time (nanoseconds) along the Y-axis. 
+- **Pan:** Click and drag the middle mouse button.
+- **Zoom:** Scroll the mouse wheel, or right-click and drag to define a zoom rectangle.
+- **Measure:** Hovering over the plot displays the current X,Y coordinates and amplitude value in the status bar.
+
+### 2.2 Display Controls (Right Panel)
+The right panel dictates *how* the data is drawn, without altering the underlying numbers.
+- **Color Map:** Switch between standard geophysical palettes (e.g., Grayscale, Seismic, Turbo).
+- **Contrast (Gain):** Adjust the minimum and maximum amplitude thresholds to clamp the visual range. This visually "boosts" faint reflections without changing the math in your pipeline.
+- **Interpolation:** Toggle pixel interpolation smoothing on or off.
 
 ---
 
-## 5. Exporting and GIS Integration
+## 3. The Signal Processing Pipeline
 
-Once you have isolated archaeological features:
-1. **Export Time Slice:** In the 3D view, select the depth of interest and click **Export -> GeoTIFF**.
-2. **Coordinate Reference System (CRS):** DIG will prompt you for an EPSG code (e.g., `EPSG:32632` for UTM Zone 32N). The exported GeoTIFF will be correctly rotated and georeferenced.
-3. **QGIS Integration:** Click **Export -> QGIS Project**. DIG will generate a `.qgs` file containing your GeoTIFFs, styled appropriately for archaeological interpretation. You can open this file directly in QGIS.
+The left panel houses the **Processing History**. Every time you apply a filter, a new "Step" is added to the history tree. 
+
+### 3.1 Standard GPR Pipeline
+Geophysical data generally requires a sequence of filters to become interpretable. A recommended standard workflow in DIG:
+
+1. **Time Zero Correction**
+   - *Why:* The radar wave travels through the air before hitting the ground, so the ground surface doesn't start at $t=0$. 
+   - *Action:* DIG shifts all traces upward so the first major reflection (the ground wave) aligns at $0$ nanoseconds.
+2. **Dewow (Low-Frequency Removal)**
+   - *Why:* Inductive coupling near the antenna creates a low-frequency "wow" that distorts the baseline.
+   - *Action:* Apply the **FFT Dewow** or **Median Dewow**. The FFT dewow acts as a high-pass filter and is nearly instantaneous.
+3. **Background Removal (Spatial Filtering)**
+   - *Why:* Horizontal ringing (antenna crosstalk) obcures deeper hyperbolic reflections.
+   - *Action:* Apply **Global Background Removal** to subtract the average of all traces from every trace, neutralizing perfectly horizontal bands.
+4. **Gain Compensation**
+   - *Why:* Radar energy attenuates exponentially as it travels through soil. Deeper reflections are mathematically invisible compared to surface noise.
+   - *Action:* Apply **SEC Gain** (Spherical and Exponential Compensation). This applies an exponential multiplier based on depth to scientifically recover lost amplitude. 
+   - *Alternative:* **AGC Gain** (Automatic Gain Control) forces all reflections to have equal brightness. Useful for visualization, but destroys relative amplitude information.
+
+### 3.2 Branching Your History
+If you reach the end of your pipeline but want to see what the data would look like if you used a different filter earlier:
+1. Click on a previous step in the **History Panel**.
+2. Apply a new filter. 
+3. DIG will split the history into a "Branch," preserving your old pipeline while allowing you to explore the new one.
+
+---
+
+## 4. Subsurface Velocity and Migration
+
+Hyperbolic diffractions occur because the radar beam spreads out in a cone. As the antenna approaches a buried rock or pipe, the reflection appears deeper (the sides of the hyperbola) until the antenna is directly over it (the apex).
+
+To correct this and collapse hyperbolas into their true point sources, you must apply **Migration**.
+1. **Estimate Velocity:** Use the **Velocity Panel** to overlay a theoretical hyperbola on your data. Adjust the velocity slider until the theoretical curve perfectly matches a real hyperbola in the ground.
+2. **Migrate:** Once you know the soil's dielectric velocity (e.g., $0.1$ m/ns for dry soil), apply **Stolt Migration** or **Kirchhoff Migration**. The hyperbolas will collapse into concentrated dots, indicating the true location of the buried objects.
+
+---
+
+## 5. Volumetric Assembly and Export
+
+### 5.1 The Slice Navigator (3D)
+If you have imported multiple parallel profiles (or a grid), DIG can interpolate them into a 3D block.
+1. Click **Assemble Grid**.
+2. The central viewer switches to the 3D PyVista engine.
+3. Use the **Slice Navigator** at the bottom of the screen to drag a horizontal plane down through the Z-axis (time/depth).
+4. High-amplitude anomalies visible on these horizontal slices often correspond to walls, floors, or ditches.
+
+### 5.2 Exporting to GIS
+Once you have identified an archaeological feature at a specific depth:
+1. Navigate to that specific time slice.
+2. Click **Export -> GeoTIFF**.
+3. You will be prompted to enter your local EPSG coordinate reference code.
+4. DIG will export a georeferenced raster image that can be dragged directly into QGIS, ArcGIS, or HOARD for your final archaeological report.

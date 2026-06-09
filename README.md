@@ -10,7 +10,7 @@ DIG bridges the gap between high-performance geophysical processing and user-fri
 
 ## 📖 Documentation
 
-The full documentation—including the User Guide, API Reference, and Integration Guides—is available at: **[DIG Documentation](USER_GUIDE.md)**
+The full documentation—including the User Guide, API Reference, and Integration Guides—is available at: **[DIG Documentation](https://mabo-du.github.io/DIG)**
 
 ## 🚀 Quick Start
 
