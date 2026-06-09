@@ -3,8 +3,8 @@ requires = ["maturin>=1.7,<2"]
 build-backend = "maturin"
 
 [project]
-name = "dig"
-version = "0.1.0"
+name = "dig-gpr"
+version = "0.1.4"
 description = "Digital Imaging for Geophysics — GPR and magnetometry processing suite"
 requires-python = ">=3.12"
 license = { text = "MIT" }
