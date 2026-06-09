@@ -25,4 +25,5 @@ nav:
     - Export: api/export.md
     - Models: api/models.md
     - Parsers: api/parsers.md
-  - More Free Tools: more-free-tools.md
+  - Other Projects:
+    - More Free Tools: more-free-tools.md

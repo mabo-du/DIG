@@ -1,6 +1,6 @@
 # More Free Tools
 
-Marcus Quinn (mabo-du) develops a wide range of open-source tools for archaeologists, historians, and heritage professionals. Below is a list of other free, public applications and libraries that you might find useful:
+Mark Bouck (mabo-du) develops a wide range of open-source tools for archaeologists, historians, and heritage professionals. Below is a list of other free, public applications and libraries that you might find useful:
 
 ## 🏛️ Archaeological Data & Excavation
 - **[HOARD](https://github.com/mabo-du/HOARD)**: Heritage Object and Artifact Research Database — an AI-assisted archaeological pipeline for document ingestion, OCR, analysis, and report generation.

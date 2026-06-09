@@ -9,7 +9,7 @@ description = "Digital Imaging for Geophysics — GPR and magnetometry processin
 requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [
-    { name = "Marcus Quinn" },
+    { name = "Mark Bouck" },
 ]
 readme = "README.md"
 
