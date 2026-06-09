@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   pypi-publish:
@@ -22,10 +23,10 @@ jobs:
           rustflags: ""
       - name: Install maturin
         run: pip install maturin
-      - name: Build and Publish Wheels
-        env:
-          MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        run: maturin publish --manifest-path dig-core/Cargo.toml
+      - name: Build Wheels
+        run: maturin build --release --manifest-path dig-core/Cargo.toml --out dist
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
 
   build-executables:
     name: Build Standalone Executables
