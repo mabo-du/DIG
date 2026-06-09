@@ -6,18 +6,21 @@ rules:
   - Must tie together all 2D and 3D visualization widgets.
 """
 
-from PySide6.QtWidgets import QMainWindow, QTabWidget, QDockWidget, QFileDialog, QMessageBox
-from PySide6.QtGui import QAction
+from pathlib import Path
+
 from PySide6.QtCore import Qt
-from dig.viz.radargram_widget import RadargramWidget
-from dig.viz.volume_widget import VolumeWidget
-from dig.viz.slice_navigator import SliceNavigator
+from PySide6.QtGui import QAction
+from PySide6.QtWidgets import QDockWidget, QFileDialog, QMainWindow, QMessageBox, QTabWidget
+
+from dig.parsers.dt1 import DT1File
+from dig.parsers.dzt import DZTFile
 from dig.viz.controls import ControlPanel
 from dig.viz.history_panel import HistoryPanel
+from dig.viz.radargram_widget import RadargramWidget
+from dig.viz.slice_navigator import SliceNavigator
 from dig.viz.velocity_panel import VelocityPanel
-from dig.parsers.dzt import DZTFile
-from dig.parsers.dt1 import DT1File
-from pathlib import Path
+from dig.viz.volume_widget import VolumeWidget
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -88,13 +91,19 @@ class MainWindow(QMainWindow):
                 parsed = DT1File(path)
                 data = parsed.traces
             else:
-                QMessageBox.warning(self, "Unsupported File", f"Unsupported file extension: {path.suffix}")
+                QMessageBox.warning(
+                    self, "Unsupported File", f"Unsupported file extension: {path.suffix}"
+                )
                 return
-            
+
             # Switch to Radargram tab and set data
             self.tabs.setCurrentWidget(self.radargram)
             self.radargram.set_data(data)
-            self.controls.update_data_info(f"Loaded: {path.name}\nTraces: {data.shape[0]}\nSamples: {data.shape[1]}")
-            
+            self.controls.update_data_info(
+                f"Loaded: {path.name}\nTraces: {data.shape[0]}\nSamples: {data.shape[1]}"
+            )
+
         except Exception as e:
-            QMessageBox.critical(self, "Error Loading File", f"Could not load {path.name}:\n\n{str(e)}")
+            QMessageBox.critical(
+                self, "Error Loading File", f"Could not load {path.name}:\n\n{str(e)}"
+            )

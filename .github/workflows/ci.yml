@@ -60,7 +60,7 @@ jobs:
       - name: Install maturin
         run: pip install maturin
       - name: Build Rust extension
-        run: pip install .
+        run: maturin develop --manifest-path dig-core/Cargo.toml --release
       - name: Install Python deps
         run: pip install numpy scipy pandas rasterio pyproj pytest PySide6 pyqtgraph pyvista pyvistaqt geopandas fiona pyyaml onnxruntime pytest-benchmark
       - name: Run Python tests

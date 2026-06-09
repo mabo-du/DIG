@@ -32,6 +32,7 @@ def main() -> int:
 
     # Launch the PyQt/PySide app
     from PySide6.QtWidgets import QApplication
+
     from dig.viz.main_window import MainWindow
 
     # Force X11 on Linux to prevent VTK BadWindow errors under Wayland
