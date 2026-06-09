@@ -1,6 +1,6 @@
 # Hoard Integration
 
-Hoard is a database system often used for cataloging small finds and bulk artifacts. While geophysical data doesn't directly map to individual artifacts, you can correlate metal detector survey results with your Hoard catalog.
+[HOARD](https://github.com/mabo-du/HOARD) (Heritage Object and Artifact Research Database) is a database system often used for cataloging small finds and bulk artifacts. While geophysical data doesn't directly map to individual artifacts, you can correlate metal detector survey results with your Hoard catalog.
 
 ## Workflow
 

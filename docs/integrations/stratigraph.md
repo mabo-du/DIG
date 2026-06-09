@@ -1,6 +1,6 @@
 # Stratigraph Integration
 
-If you use Stratigraph to manage your archaeological contexts and stratigraphic matrices, you can link your geophysical anomalies directly to your excavation records.
+If you use [Stratigraph](https://github.com/mabo-du/stratigraph) to manage your archaeological contexts and stratigraphic matrices, you can link your geophysical anomalies directly to your excavation records.
 
 ## Linking Anomalies
 
