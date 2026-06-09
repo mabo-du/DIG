@@ -34,6 +34,10 @@ def main() -> int:
     from PySide6.QtWidgets import QApplication
     from dig.viz.main_window import MainWindow
 
+    # Force X11 on Linux to prevent VTK BadWindow errors under Wayland
+    if sys.platform.startswith("linux"):
+        os.environ["QT_QPA_PLATFORM"] = "xcb"
+
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
