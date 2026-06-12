@@ -36,15 +36,15 @@ class VolumeWidget(QWidget):
         super().__init__(parent)
         self.grid: Optional[Grid3D] = None
 
-        self.layout = QVBoxLayout(self)
+        main_layout = QVBoxLayout(self)
 
         # PyVista Interactor
         self.plotter = QtInteractor(self)
-        self.layout.addWidget(self.plotter.interactor, stretch=1)
+        main_layout.addWidget(self.plotter.interactor, stretch=1)
 
         # Controls Layout
         controls_layout = QHBoxLayout()
-        self.layout.addLayout(controls_layout)
+        main_layout.addLayout(controls_layout)
 
         # Slices controls
         slices_group = QGroupBox("Orthogonal Slices")
@@ -55,15 +55,15 @@ class VolumeWidget(QWidget):
         self.show_slices_cb.stateChanged.connect(self._update_visibility)
         slices_layout.addRow("", self.show_slices_cb)
 
-        self.inline_slider = QSlider(Qt.Horizontal)
+        self.inline_slider = QSlider(Qt.Orientation.Horizontal)
         self.inline_slider.valueChanged.connect(self._update_slices)
         slices_layout.addRow("Inline", self.inline_slider)
 
-        self.crossline_slider = QSlider(Qt.Horizontal)
+        self.crossline_slider = QSlider(Qt.Orientation.Horizontal)
         self.crossline_slider.valueChanged.connect(self._update_slices)
         slices_layout.addRow("Crossline", self.crossline_slider)
 
-        self.depth_slider = QSlider(Qt.Horizontal)
+        self.depth_slider = QSlider(Qt.Orientation.Horizontal)
         self.depth_slider.valueChanged.connect(self._update_slices)
         slices_layout.addRow("Depth", self.depth_slider)
 
@@ -84,7 +84,7 @@ class VolumeWidget(QWidget):
 
         iso_slider_layout = QHBoxLayout()
         iso_slider_layout.addWidget(QLabel("Iso Threshold"))
-        self.iso_slider = QSlider(Qt.Horizontal)
+        self.iso_slider = QSlider(Qt.Orientation.Horizontal)
         self.iso_slider.valueChanged.connect(self._update_isosurface)
         iso_slider_layout.addWidget(self.iso_slider)
         vol_layout.addLayout(iso_slider_layout)
@@ -93,11 +93,11 @@ class VolumeWidget(QWidget):
         controls_layout.addWidget(vol_group)
 
         self.mesh: Optional[pv.ImageData] = None
-        self.x_actor = None
-        self.y_actor = None
-        self.z_actor = None
-        self.vol_actor = None
-        self.iso_actor = None
+        self.x_actor: Optional[pv.Actor] = None
+        self.y_actor: Optional[pv.Actor] = None
+        self.z_actor: Optional[pv.Actor] = None
+        self.vol_actor: Optional[pv.Actor] = None
+        self.iso_actor: Optional[pv.Actor] = None
         self.iso_val = 0.5
 
     def set_grid(self, grid: Grid3D) -> None:
@@ -175,8 +175,8 @@ class VolumeWidget(QWidget):
         z_idx = self.depth_slider.value()
 
         phys_x = self.mesh.origin[0] + x_idx * self.mesh.spacing[0]
-        phys_y = self.mesh.origin[1] + y_idx * self.mesh.spacing[1]
-        phys_z = self.mesh.origin[2] + z_idx * self.mesh.spacing[2]
+        phys_y = self.mesh.origin[1] + y_idx * self.mesh.spacing[1]  # type: ignore[misc]
+        phys_z = self.mesh.origin[2] + z_idx * self.mesh.spacing[2]  # type: ignore[misc]
 
         # We use name to replace the existing mesh
         x_slice = self.mesh.slice(normal="x", origin=(phys_x, 0, 0))

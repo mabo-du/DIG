@@ -23,11 +23,11 @@ pub fn kirchhoff_migration(
             let mut amplitude = 0.0;
             let mut count = 0;
 
-            let k_start = if i > aperture_traces { i - aperture_traces } else { 0 };
+            let k_start = i.saturating_sub(aperture_traces);
             let k_end = std::cmp::min(n_traces, i + aperture_traces + 1);
 
             for k in k_start..k_end {
-                let dx = ((if k > i { k - i } else { i - k }) as f64) * trace_spacing_m;
+                let dx = (k.abs_diff(i) as f64) * trace_spacing_m;
                 let t = (t0 * t0 + (2.0 * dx / v).powi(2)).sqrt();
                 let t_sample = t / dt;
                 

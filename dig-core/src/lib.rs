@@ -3,6 +3,8 @@
 //! Provides memory-safe binary format parsers, SIMD-accelerated signal
 //! processing, and memory-mapped I/O — exposed to Python via PyO3.
 
+#![allow(clippy::useless_conversion)]
+
 mod parser;
 pub mod dsp;
 mod io;

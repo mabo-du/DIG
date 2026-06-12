@@ -9,6 +9,7 @@
 use crate::types::survey::PySurvey;
 
 /// Parse a SEG-Y file and return a PySurvey.
+#[allow(dead_code)]
 pub fn parse_file(path: &str) -> Result<PySurvey, Box<dyn std::error::Error>> {
     let data = std::fs::read(path)?;
     if data.len() < 3600 {

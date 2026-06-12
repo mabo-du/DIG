@@ -1,6 +1,6 @@
 [package]
 name = "dig-core"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "High-performance Rust backend for DIG geophysics processing"
 

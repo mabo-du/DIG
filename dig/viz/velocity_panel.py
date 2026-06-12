@@ -29,7 +29,7 @@ class VelocityPanel(QtWidgets.QWidget):
         self.current_apex: Optional[Tuple[float, float]] = None  # (trace, time)
 
         # UI Elements
-        self.layout = QtWidgets.QVBoxLayout(self)
+        main_layout = QtWidgets.QVBoxLayout(self)
 
         # Mode toggle (Dockable standalone vs Embedded/Overlay)
         self.mode_combo = QtWidgets.QComboBox()
@@ -39,7 +39,7 @@ class VelocityPanel(QtWidgets.QWidget):
         top_layout = QtWidgets.QHBoxLayout()
         top_layout.addWidget(QtWidgets.QLabel("View Mode:"))
         top_layout.addWidget(self.mode_combo)
-        self.layout.addLayout(top_layout)
+        main_layout.addLayout(top_layout)
 
         # Controls
         controls_layout = QtWidgets.QHBoxLayout()
@@ -54,7 +54,7 @@ class VelocityPanel(QtWidgets.QWidget):
         controls_layout.addWidget(self.btn_pick)
         controls_layout.addWidget(self.btn_clear)
         controls_layout.addWidget(self.btn_export)
-        self.layout.addLayout(controls_layout)
+        main_layout.addLayout(controls_layout)
 
         # Trace Spacing Input
         spacing_layout = QtWidgets.QHBoxLayout()
@@ -64,16 +64,16 @@ class VelocityPanel(QtWidgets.QWidget):
         self.spin_spacing.setSingleStep(0.01)
         spacing_layout.addWidget(QtWidgets.QLabel("Trace Spacing (m):"))
         spacing_layout.addWidget(self.spin_spacing)
-        self.layout.addLayout(spacing_layout)
+        main_layout.addLayout(spacing_layout)
 
         # Semblance Display
-        self.layout.addWidget(QtWidgets.QLabel("Semblance Analysis:"))
+        main_layout.addWidget(QtWidgets.QLabel("Semblance Analysis:"))
         self.semblance_plot = pg.PlotWidget(title="Semblance (V vs T0)")
         self.semblance_plot.setLabel("left", "Time", units="ns")
         self.semblance_plot.setLabel("bottom", "Velocity", units="m/ns")
         self.semblance_image = pg.ImageItem()
         self.semblance_plot.addItem(self.semblance_image)
-        self.layout.addWidget(self.semblance_plot)
+        main_layout.addWidget(self.semblance_plot)
 
         # Overlay item for hyperbolas
         self.hyperbola_plot_item = pg.PlotDataItem(pen=pg.mkPen("r", width=2))

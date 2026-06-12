@@ -18,6 +18,7 @@ use nom::{
 };
 
 /// Per-trace header (128 bytes).
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct TraceHeader {
     pub trace_number: i32,

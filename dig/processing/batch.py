@@ -83,6 +83,7 @@ def _process_single_file(filepath: str, recipe_steps: List[Dict[str, Any]]) -> D
 
     try:
         ext = path.suffix.lower()
+        parser: Union[DZTFile, DT1File]
         if ext == ".dzt":
             parser = DZTFile(filepath)
             data = parser.traces

@@ -25,10 +25,10 @@ class SliceNavigator(QDockWidget):
 
         # Main widget
         self.main_widget = QWidget()
-        self.layout = QVBoxLayout(self.main_widget)
-        self.layout.setContentsMargins(0, 0, 0, 0)
+        main_layout = QVBoxLayout(self.main_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.splitter = QSplitter(Qt.Vertical)
+        self.splitter = QSplitter(Qt.Orientation.Vertical)
 
         self.inline_view = RadargramWidget()
         self.crossline_view = RadargramWidget()
@@ -46,7 +46,7 @@ class SliceNavigator(QDockWidget):
         self.splitter.addWidget(self.crossline_view)
         self.splitter.addWidget(self.time_slice_view)
 
-        self.layout.addWidget(self.splitter)
+        main_layout.addWidget(self.splitter)
         self.setWidget(self.main_widget)
 
     def set_grid(self, grid: Grid3D) -> None:

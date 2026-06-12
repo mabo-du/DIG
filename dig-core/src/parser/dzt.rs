@@ -25,7 +25,8 @@ use nom::{
     IResult,
 };
 
-/// Parsed DZT header fields.
+/// Parsed Dzt header fields.
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct DztHeader {
     pub rh_tag: i16,
@@ -126,12 +127,14 @@ pub fn parse_file(path: &str) -> Result<PySurvey, Box<dyn std::error::Error>> {
     Ok(survey)
 }
 
+type DzgpResult = Result<Vec<(usize, f64, f64, f64)>, Box<dyn std::error::Error>>;
+
 /// Parse a .DZG sidecar GPS file (NMEA sentences, one per trace).
 ///
 /// Returns a Vec of (trace_index, latitude, longitude, elevation) tuples.
 /// Each line should be a $GPGGA or $GPRMC NMEA sentence corresponding
 /// to the trace at that index.
-pub fn parse_dzg(path: &str) -> Result<Vec<(usize, f64, f64, f64)>, Box<dyn std::error::Error>> {
+pub fn parse_dzg(path: &str) -> DzgpResult {
     let content = std::fs::read_to_string(path)?;
     let mut positions: Vec<(usize, f64, f64, f64)> = Vec::new();
 

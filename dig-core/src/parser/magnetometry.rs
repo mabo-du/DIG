@@ -14,6 +14,7 @@ use crate::types::survey::PySurvey;
 
 /// Void/sentinel value for missing data in magnetometry grids.
 /// Bartington/Geoscan use -32768 (i16::MIN) or 32767 (i16::MAX).
+#[allow(dead_code)]
 pub const VOID_I16: i16 = i16::MIN;
 
 /// Grid metadata parsed from .grd file.
@@ -47,7 +48,7 @@ pub fn parse_grd(path: &str) -> Result<GridMetadata, Box<dyn std::error::Error>>
             continue;
         }
         let parts: Vec<&str> = line
-            .splitn(2, |c: char| c == ' ' || c == '=' || c == ':')
+            .splitn(2, |c: char| [' ', '=', ':'].contains(&c))
             .map(|s| s.trim())
             .filter(|s| !s.is_empty())
             .collect();
